@@ -1,0 +1,47 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+:root {
+  --bg: #eef2f4;
+  --panel: #ffffff;
+  --ink: #15232d;
+  --mute: #5d6e7a;
+  --line: #d3dce2;
+  --cv: #f7fafb;
+  --ent: #64748b;
+  --acc: #0b7a6c;
+  --accf: rgba(11, 122, 108, 0.22);
+  --hov: rgba(11, 122, 108, 0.12);
+  color-scheme: light;
+}
+
+:root.dark {
+  --bg: #0b1117;
+  --panel: #131c24;
+  --ink: #e6eef3;
+  --mute: #8fa2af;
+  --line: #23313d;
+  --cv: #0d1821;
+  --ent: #6f8ea6;
+  --acc: #3fd0b4;
+  --accf: rgba(63, 208, 180, 0.24);
+  --hov: rgba(63, 208, 180, 0.14);
+  color-scheme: dark;
+}
+
+body {
+  font-family: var(--font-sans);
+}
+
+/* Tắt triệt để thanh shortcut toolbar nổi của @mlightcad */
+div.ml-ui-shortcut-toolbar-shell,
+.ml-ui-shortcut-toolbar-shell {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
