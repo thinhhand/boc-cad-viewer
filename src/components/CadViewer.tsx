@@ -4163,7 +4163,7 @@ export const CadViewer: React.FC = () => {
       style={{ background: 'var(--bg)' }}
     >
       {/* ==================== TOP HEADER BAR (FULL DWG & DXF) ==================== */}
-      <header className="h-12 px-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 z-30">
+      <header className="h-12 px-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 z-40 relative">
         {/* Zone 1: Brand & Tên bản vẽ hiện tại */}
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="flex items-center gap-1.5 shrink-0">
@@ -4351,7 +4351,7 @@ export const CadViewer: React.FC = () => {
       <div
         role="toolbar"
         aria-label="Công cụ bản vẽ"
-        className="w-full flex flex-wrap items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-20"
+        className="w-full flex flex-wrap items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative"
       >
         {/* Nhóm 1: Công cụ Đo đạc & Vẽ chính */}
         <div className="flex flex-wrap items-center gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 max-w-full">
@@ -5008,7 +5008,7 @@ export const CadViewer: React.FC = () => {
 
       {/* ==================== THANH ĐIỀU KHIỂN CHỌN ẨN/BẬT LỚP (LAYOFF BAR) ==================== */}
       {(mode === 'layoff' || lastLayerToast) && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50/90 dark:bg-rose-950/35 border-b border-rose-200/80 dark:border-rose-800/60 text-xs shrink-0 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50/90 dark:bg-rose-950/35 border-b border-rose-200/80 dark:border-rose-800/60 text-xs shrink-0 overflow-x-auto no-scrollbar relative z-20">
           <div className="inline-flex items-center gap-1.5 font-semibold text-rose-900 dark:text-rose-200 shrink-0">
             <EyeOff className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
             <span>Chế độ chạm ẩn/bật lớp (LAYOFF):</span>
@@ -5097,7 +5097,7 @@ export const CadViewer: React.FC = () => {
       {/* ==================== THANH CẤU HÌNH LƯỚI GẠCH (#tilebar) ==================== */}
       <div
         id="tilebar"
-        className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 overflow-x-auto no-scrollbar transition-all"
+        className="flex items-center gap-2.5 px-3 py-1.5 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-xs border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 overflow-x-auto no-scrollbar transition-all relative z-10"
       >
         <label className="inline-flex items-center gap-1.5 font-semibold text-slate-800 dark:text-slate-200 cursor-pointer whitespace-nowrap shrink-0 select-none">
           <input
@@ -5321,7 +5321,7 @@ export const CadViewer: React.FC = () => {
       </div>
 
       {/* ==================== KHU VỰC CHÍNH: CAD VIEWPORT + CỘT BÊN PHẢI ==================== */}
-      <main className="flex-1 min-h-0 flex flex-col lg:flex-row">
+      <main className="flex-1 min-h-0 flex flex-col lg:flex-row relative z-0">
         {/* CỘT TRÁI: Multi-Document Bar + @mlightcad/cad-simple-viewer + Thanh Sheet/Layout Tabs dưới đáy */}
         <div
           className="flex-1 min-h-0 flex flex-col relative overflow-hidden bg-slate-950"
@@ -5333,9 +5333,9 @@ export const CadViewer: React.FC = () => {
             e.stopPropagation()
           }}
         >
-          {/* Thanh Multi-Document Tabs (MDI) hiển thị bản vẽ đang mở */}
-          {openDocs.length > 0 && (
-            <div className="flex items-center gap-1 px-2 py-1 bg-slate-900 border-b border-slate-800 text-xs overflow-x-auto no-scrollbar shrink-0 z-20">
+          {/* Thanh Multi-Document Tabs (MDI) chỉ hiển thị khi mở từ 2 bản vẽ trở lên */}
+          {openDocs.length > 1 && (
+            <div className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs overflow-x-auto no-scrollbar shrink-0">
               {openDocs.map(tab => (
                 <div
                   key={tab.sessionId}
@@ -5343,29 +5343,27 @@ export const CadViewer: React.FC = () => {
                   className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-mono text-[11px] cursor-pointer transition-colors shrink-0 ${
                     tab.isActive
                       ? 'bg-teal-700 text-white font-semibold'
-                      : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
+                      : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700'
                   }`}
                 >
                   <span
                     className={`px-1 rounded text-[9px] font-bold ${
                       tab.format === 'DWG'
-                        ? 'bg-indigo-500/30 text-indigo-200'
-                        : 'bg-teal-500/30 text-teal-200'
+                        ? 'bg-indigo-500/20 text-indigo-700 dark:text-indigo-300'
+                        : 'bg-teal-500/20 text-teal-700 dark:text-teal-300'
                     }`}
                   >
                     {tab.format}
                   </span>
                   <span className="truncate max-w-[160px]">{tab.title}</span>
-                  {openDocs.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={e => handleCloseDocument(tab, e)}
-                      title="Đóng bản vẽ này"
-                      className="hover:text-rose-300 px-0.5 cursor-pointer ml-0.5"
-                    >
-                      ✕
-                    </button>
-                  )}
+                  <button
+                    type="button"
+                    onClick={e => handleCloseDocument(tab, e)}
+                    title="Đóng bản vẽ này"
+                    className="hover:text-rose-400 px-0.5 cursor-pointer ml-0.5"
+                  >
+                    ✕
+                  </button>
                 </div>
               ))}
             </div>
