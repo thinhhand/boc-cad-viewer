@@ -5780,13 +5780,6 @@ export const CadViewer: React.FC = () => {
                 </button>
               </div>
 
-              <div className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 text-[11px] font-mono tabular-nums text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-700/60">
-                <span>X: {cursorWcs.x.toFixed(1)}</span>
-                <span className="text-slate-400">·</span>
-                <span>Y: {cursorWcs.y.toFixed(1)}</span>
-                <span className="text-slate-400">({currentUnitSymbol})</span>
-              </div>
-
               {currentSnap && currentSnap.type !== 'none' && (
                 <span className="hidden lg:inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700/80 max-w-[180px] truncate">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
