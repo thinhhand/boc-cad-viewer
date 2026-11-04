@@ -1273,6 +1273,13 @@ export const CadViewer: React.FC = () => {
     layer: string
     hidden: boolean
   } | null>(null)
+
+  const showLayerToast = useCallback((layer: string, hidden: boolean) => {
+    setLastLayerToast({ layer, hidden })
+    setTimeout(() => {
+      setLastLayerToast(prev => (prev?.layer === layer ? null : prev))
+    }, 2500)
+  }, [])
   const [cursorWcs, setCursorWcs] = useState<Point2D>({ x: 0, y: 0 })
   const [measuredPolygons, setMeasuredPolygons] = useState<MeasuredPolygon[]>([])
   const [selectedPolygonId, setSelectedPolygonId] = useState<string | null>(null)
@@ -3318,7 +3325,7 @@ export const CadViewer: React.FC = () => {
           store.setLayerOn(hit.layer, nextOn)
           setLayers(store.getLayers())
           setHoveredLayoff(null)
-          setLastLayerToast({ layer: hit.layer, hidden: !nextOn })
+          showLayerToast(hit.layer, !nextOn)
           if (!nextOn) {
             setRecentHiddenLayers(prev => [
               hit.layer,
@@ -5025,90 +5032,87 @@ export const CadViewer: React.FC = () => {
       </div>
 
       {/* ==================== THANH ĐIỀU KHIỂN CHỌN ẨN/BẬT LỚP (LAYOFF BAR) ==================== */}
-      {(mode === 'layoff' || lastLayerToast) && (
-        <div className="flex items-center gap-2 px-3 py-1.5 bg-rose-50/90 dark:bg-rose-950/35 border-b border-rose-200/80 dark:border-rose-800/60 text-xs shrink-0 overflow-x-auto no-scrollbar relative z-20">
-          <div className="inline-flex items-center gap-1.5 font-semibold text-rose-900 dark:text-rose-200 shrink-0">
-            <EyeOff className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
-            <span>Chế độ chạm ẩn/bật lớp (LAYOFF):</span>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowGhostHidden(v => !v)}
-            aria-pressed={showGhostHidden}
-            title="Hiển thị mờ các lớp đang ẩn để bạn có thể bấm trực tiếp vào đối tượng ẩn trên bản vẽ và bật lại lớp đó"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md border font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
-              showGhostHidden
-                ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
-                : 'bg-white dark:bg-slate-900 border-rose-300 dark:border-rose-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
-            }`}
-          >
-            <Eye className="w-3.5 h-3.5 shrink-0" />
-            <span>
-              {showGhostHidden
-                ? 'Đang hiện mờ lớp ẩn (Bấm vào nét mờ để BẬT lại)'
-                : 'Hiện mờ lớp ẩn để bấm bật lại'}
-            </span>
-          </button>
-
-          {lastLayerToast && (
-            <span
-              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded font-mono text-[11px] font-semibold shrink-0 ${
-                lastLayerToast.hidden
-                  ? 'bg-rose-600 text-white'
-                  : 'bg-emerald-600 text-white'
-              }`}
-            >
-              {lastLayerToast.hidden
-                ? `Đã ẩn lớp: ${lastLayerToast.layer}`
-                : `Đã bật lại lớp: ${lastLayerToast.layer}`}
-            </span>
-          )}
-
-          {layers.filter(l => !l.isOn).length > 0 && (
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-slate-500 dark:text-slate-400 text-[11px] shrink-0">
-                Bật lại nhanh:
-              </span>
-              {layers
-                .filter(l => !l.isOn)
-                .sort((a, b) => {
-                  const ia = recentHiddenLayers.indexOf(a.name)
-                  const ib = recentHiddenLayers.indexOf(b.name)
-                  if (ia !== -1 && ib !== -1) return ia - ib
-                  if (ia !== -1) return -1
-                  if (ib !== -1) return 1
-                  return a.name.localeCompare(b.name)
-                })
-                .slice(0, 8)
-                .map(layer => (
-                  <button
-                    key={layer.name}
-                    type="button"
-                    onClick={() => {
-                      handleToggleLayer(layer.name, false)
-                      setLastLayerToast({ layer: layer.name, hidden: false })
-                    }}
-                    title={`Bấm để bật lại lớp ${layer.name}`}
-                    className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-emerald-500 hover:text-emerald-700 dark:hover:text-emerald-300 font-mono text-[11px] transition-colors cursor-pointer shrink-0"
-                  >
-                    <Eye className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                    <span>{layer.name}</span>
-                  </button>
-                ))}
+      {mode === 'layoff' && (
+        <div className="flex items-center justify-between gap-2 px-3 py-1.5 bg-rose-50/95 dark:bg-rose-950/40 border-b border-rose-200/80 dark:border-rose-800/60 text-xs shrink-0 overflow-x-auto no-scrollbar relative z-20">
+          <div className="flex items-center gap-2 min-w-0">
+            <div className="inline-flex items-center gap-1.5 font-semibold text-rose-900 dark:text-rose-200 shrink-0">
+              <EyeOff className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+              <span>Chế độ chạm ẩn lớp (LAYOFF):</span>
             </div>
-          )}
+            <span className="hidden md:inline text-slate-600 dark:text-slate-300 text-[11px] truncate">
+              Chạm trực tiếp vào nét vẽ bất kỳ trên bản vẽ để ẩn lớp đó.
+            </span>
 
-          {mode === 'layoff' && (
             <button
               type="button"
-              onClick={() => selectMode('poly')}
-              className="ml-auto inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-teal-700 hover:bg-teal-800 text-white font-semibold transition-colors whitespace-nowrap shrink-0 cursor-pointer"
+              onClick={() => setShowGhostHidden(v => !v)}
+              aria-pressed={showGhostHidden}
+              title="Hiển thị mờ các đối tượng thuộc lớp ẩn để bạn có thể bấm trực tiếp vào nét mờ và bật lại lớp"
+              className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md border text-[11px] font-medium transition-colors whitespace-nowrap shrink-0 cursor-pointer ${
+                showGhostHidden
+                  ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs font-semibold'
+                  : 'bg-white dark:bg-slate-900 border-rose-300 dark:border-rose-700 text-slate-700 dark:text-slate-200 hover:bg-emerald-50 dark:hover:bg-emerald-950/40'
+              }`}
+            >
+              <Eye className="w-3.5 h-3.5 shrink-0" />
+              <span>
+                {showGhostHidden ? 'Đang hiện mờ lớp ẩn' : 'Hiện mờ nét ẩn để bật lại'}
+              </span>
+            </button>
+
+            {layers.some(l => !l.isOn) && (
+              <button
+                type="button"
+                onClick={handleSetAllLayersOn}
+                className="text-[11px] font-semibold text-teal-700 dark:text-teal-300 hover:underline cursor-pointer shrink-0 ml-1"
+              >
+                Bật lại tất cả ({layers.filter(l => !l.isOn).length} lớp đang ẩn)
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1.5 shrink-0 ml-auto">
+            {layers.filter(l => !l.isOn).length > 0 && (
+              <div className="hidden lg:flex items-center gap-1 shrink-0 mr-1">
+                <span className="text-slate-500 dark:text-slate-400 text-[10px]">Lớp ẩn gần đây:</span>
+                {layers
+                  .filter(l => !l.isOn)
+                  .sort((a, b) => {
+                    const ia = recentHiddenLayers.indexOf(a.name)
+                    const ib = recentHiddenLayers.indexOf(b.name)
+                    if (ia !== -1 && ib !== -1) return ia - ib
+                    if (ia !== -1) return -1
+                    if (ib !== -1) return 1
+                    return a.name.localeCompare(b.name)
+                  })
+                  .slice(0, 5)
+                  .map(layer => (
+                    <button
+                      key={layer.name}
+                      type="button"
+                      onClick={() => {
+                        handleToggleLayer(layer.name, false)
+                        showLayerToast(layer.name, false)
+                      }}
+                      title={`Bấm để bật lại lớp ${layer.name}`}
+                      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:border-emerald-500 text-[10px] font-mono transition-colors cursor-pointer"
+                    >
+                      <Eye className="w-2.5 h-2.5 text-emerald-600 dark:text-emerald-400" />
+                      <span>{layer.name}</span>
+                    </button>
+                  ))}
+              </div>
+            )}
+
+            <button
+              type="button"
+              onClick={() => selectMode('pan')}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-slate-900 dark:bg-slate-100 hover:bg-slate-800 dark:hover:bg-white text-white dark:text-slate-900 font-semibold text-xs transition-colors cursor-pointer"
             >
               <Check className="w-3.5 h-3.5" />
-              <span>Xong · Quay lại đo</span>
+              <span>Xong · Thoát</span>
             </button>
-          )}
+          </div>
         </div>
       )}
 
@@ -5430,6 +5434,28 @@ export const CadViewer: React.FC = () => {
               </div>
             )}
 
+            {/* Thông báo thao tác Ẩn/Bật Layer (Tự tắt sau 2.5s) */}
+            {lastLayerToast && (
+              <div
+                className={`absolute top-3 left-1/2 -translate-x-1/2 z-40 px-3.5 py-1.5 rounded-full text-white text-xs font-medium shadow-lg backdrop-blur-xs flex items-center gap-2 pointer-events-none ${
+                  lastLayerToast.hidden
+                    ? 'bg-rose-900/90 border border-rose-500/60'
+                    : 'bg-emerald-900/90 border border-emerald-500/60'
+                }`}
+              >
+                {lastLayerToast.hidden ? (
+                  <EyeOff className="w-3.5 h-3.5 text-rose-300 shrink-0" />
+                ) : (
+                  <Eye className="w-3.5 h-3.5 text-emerald-300 shrink-0" />
+                )}
+                <span>
+                  {lastLayerToast.hidden
+                    ? `Đã ẩn lớp: ${lastLayerToast.layer}`
+                    : `Đã bật lại lớp: ${lastLayerToast.layer}`}
+                </span>
+              </div>
+            )}
+
             {/* Hộp thoại nổi Tìm kiếm chữ (Find Text trong DWG/DXF) */}
             {showFindPanel && (
               <div className="absolute top-3 right-3 z-30 w-80 sm:w-96 max-h-[75%] flex flex-col rounded-xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-900/95 shadow-2xl backdrop-blur-md text-xs overflow-hidden">
@@ -5610,7 +5636,7 @@ export const CadViewer: React.FC = () => {
                     type="button"
                     onClick={() => {
                       handleToggleLayer(inspectedEntity.layer, true)
-                      setLastLayerToast({ layer: inspectedEntity.layer, hidden: true })
+                      showLayerToast(inspectedEntity.layer, true)
                       setInspectedEntity(null)
                     }}
                     className="px-2.5 py-1 rounded bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 font-medium cursor-pointer"
