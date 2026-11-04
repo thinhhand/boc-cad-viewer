@@ -4332,33 +4332,6 @@ export const CadViewer: React.FC = () => {
             )}
           </button>
 
-          {/* Chọn file DWG / DXF mẫu */}
-          <div className="flex items-center gap-1 px-2 py-1 text-xs bg-slate-100/90 dark:bg-slate-800/90 border border-slate-200 dark:border-slate-700/80 rounded-lg">
-            <Sparkles className="w-3.5 h-3.5 text-amber-500 shrink-0" />
-            <span className="hidden md:inline text-slate-500 dark:text-slate-400 font-medium">
-              Mẫu CAD:
-            </span>
-            <select
-              value={selectedSampleId}
-              onChange={e => {
-                const found = SAMPLE_FILES.find(s => s.id === e.target.value)
-                if (found) loadSampleFile(found)
-              }}
-              aria-label="Chọn bản vẽ DWG/DXF mẫu"
-              className="bg-transparent font-medium text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer max-w-[150px] sm:max-w-[210px] text-xs"
-            >
-              {SAMPLE_FILES.map(sample => (
-                <option
-                  key={sample.id}
-                  value={sample.id}
-                  className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                >
-                  {sample.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           <button
             type="button"
             onClick={handleSelectAllClosedBoundaries}
