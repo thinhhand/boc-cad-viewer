@@ -1319,15 +1319,6 @@ export const CadViewer: React.FC = () => {
   const [expandedPolyIds, setExpandedPolyIds] = useState<Set<string>>(() => new Set())
   const [copyStatus, setCopyStatus] = useState<string>('Sao chép Excel')
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false)
-  const [batchHeightInput, setBatchHeightInput] = useState<string>('2.8')
-
-  const handleApplyBatchHeight = (val?: number) => {
-    const h = val !== undefined ? val : parseFloat(batchHeightInput) || 0
-    if (h <= 0) return
-    setHistory(prev => [...prev.slice(-29), measuredPolygonsRef.current])
-    setRedoStack([])
-    setMeasuredPolygons(prev => prev.map(p => ({ ...p, heightMeters: h })))
-  }
 
   // Refs đồng bộ cho các callback sự kiện chuột và Canvas Overlay
   const modeRef = useRef(mode)
@@ -4379,22 +4370,8 @@ export const CadViewer: React.FC = () => {
           </button>
         </div>
 
-        {/* Zone 3: Tìm kiếm chữ CAD, Hướng dẫn & Chế độ Sáng / Tối */}
+        {/* Zone 3: Hướng dẫn & Chế độ Sáng / Tối */}
         <div className="flex items-center gap-1.5 shrink-0">
-          <button
-            type="button"
-            onClick={() => setShowFindPanel(v => !v)}
-            aria-pressed={showFindPanel}
-            title="Tìm kiếm văn bản (TEXT, MTEXT, Block Attribute, Dimension) trên mọi Sheet/Layout (Ctrl+F)"
-            className={`inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-semibold rounded-lg border transition-all cursor-pointer ${
-              showFindPanel
-                ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
-                : 'text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700'
-            }`}
-          >
-            <Search className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Tìm chữ</span>
-          </button>
           <button
             type="button"
             onClick={() => setShowHelpModal(true)}
@@ -6034,45 +6011,6 @@ export const CadViewer: React.FC = () => {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* Thanh gán cao độ nhanh (Batch Height Bar) */}
-              <div className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-lg bg-slate-100/90 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 text-[11px]">
-                <span className="text-slate-600 dark:text-slate-300 font-medium shrink-0 text-[10px]">
-                  Cao độ tường (H):
-                </span>
-                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
-                  {[2.8, 3.0, 3.3, 3.6].map(hVal => (
-                    <button
-                      key={hVal}
-                      type="button"
-                      onClick={() => handleApplyBatchHeight(hVal)}
-                      title={`Gán nhanh cao độ ${hVal}m cho toàn bộ vùng đo`}
-                      className="px-1.5 py-0.5 rounded font-mono text-[10px] font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors shrink-0"
-                    >
-                      {hVal}m
-                    </button>
-                  ))}
-                  <div className="flex items-center gap-0.5 shrink-0 ml-0.5">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      value={batchHeightInput}
-                      onChange={e => setBatchHeightInput(e.target.value)}
-                      placeholder="m"
-                      className="w-10 px-1 py-0.2 text-right font-mono text-[10px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded focus:outline-none focus:border-indigo-500"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => handleApplyBatchHeight()}
-                      title="Gán chiều cao này cho toàn bộ vùng đo"
-                      className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer transition-colors"
-                    >
-                      Gán tất cả
-                    </button>
-                  </div>
-                </div>
               </div>
 
               {/* Thanh tab phân loại + tìm kiếm */}
