@@ -1319,6 +1319,15 @@ export const CadViewer: React.FC = () => {
   const [expandedPolyIds, setExpandedPolyIds] = useState<Set<string>>(() => new Set())
   const [copyStatus, setCopyStatus] = useState<string>('Sao chép Excel')
   const [showHelpModal, setShowHelpModal] = useState<boolean>(false)
+  const [batchHeightInput, setBatchHeightInput] = useState<string>('2.8')
+
+  const handleApplyBatchHeight = (val?: number) => {
+    const h = val !== undefined ? val : parseFloat(batchHeightInput) || 0
+    if (h <= 0) return
+    setHistory(prev => [...prev.slice(-29), measuredPolygonsRef.current])
+    setRedoStack([])
+    setMeasuredPolygons(prev => prev.map(p => ({ ...p, heightMeters: h })))
+  }
 
   // Refs đồng bộ cho các callback sự kiện chuột và Canvas Overlay
   const modeRef = useRef(mode)
@@ -4061,6 +4070,14 @@ export const CadViewer: React.FC = () => {
     [measuredPolygons]
   )
 
+  const totalWallArea = useMemo(
+    () =>
+      measuredPolygons
+        .filter(p => p.visible && (p.heightMeters ?? 0) > 0)
+        .reduce((sum, p) => sum + p.perimeterMeters * (p.heightMeters ?? 0), 0),
+    [measuredPolygons]
+  )
+
   const tileSummary = useMemo(() => {
     if (!tileConfig.on) {
       return { full: 0, cut: 0, total: 0, toBuy: 0, boxes: 0 }
@@ -4104,22 +4121,47 @@ export const CadViewer: React.FC = () => {
   // Sao chép bảng sang Excel (TSV) và Xuất CSV
   const handleCopyExcel = async () => {
     if (!measuredPolygons.length) return
-    const headers = ['STT', 'Tên đa giác', 'Số đoạn', 'Chu vi (m)', 'Diện tích (m²)', 'Chi tiết các đoạn (m)']
+    const headers = [
+      'STT',
+      'Hạng mục / Vùng',
+      'Loại',
+      'Số đoạn',
+      'Chu vi / Dài (m)',
+      'Cao độ H (m)',
+      'Diện tích Sàn (m²)',
+      'Diện tích Tường (m²)',
+      'Chi tiết các đoạn (m)',
+    ]
     const lines = [headers.join('\t')]
     measuredPolygons.forEach((p, i) => {
       const segsText = p.segments.map(s => `P${s.index}:${s.lengthMeters.toFixed(2)}m`).join(' | ')
+      const h = p.heightMeters ?? 0
+      const wallArea = h > 0 ? p.perimeterMeters * h : 0
       lines.push(
         [
           i + 1,
           p.name,
+          p.kind === 'dist' ? 'Đoạn thẳng' : 'Vùng sàn',
           p.segments.length,
           p.perimeterMeters.toFixed(2),
-          p.areaSquareMeters.toFixed(3),
+          h > 0 ? h.toFixed(2) : '',
+          p.kind === 'dist' ? '' : p.areaSquareMeters.toFixed(3),
+          wallArea > 0 ? wallArea.toFixed(3) : '',
           segsText,
         ].join('\t')
       )
     })
-    lines.push(['', 'TỔNG CỘNG', '', totalPerimeter.toFixed(2), totalArea.toFixed(3), ''].join('\t'))
+    lines.push([
+      '',
+      'TỔNG CỘNG',
+      '',
+      '',
+      totalPerimeter.toFixed(2),
+      '',
+      totalArea.toFixed(3),
+      totalWallArea.toFixed(3),
+      '',
+    ].join('\t'))
     await navigator.clipboard.writeText(lines.join('\n'))
     setCopyStatus('Đã chép!')
     setTimeout(() => setCopyStatus('Sao chép Excel'), 2000)
@@ -4127,26 +4169,52 @@ export const CadViewer: React.FC = () => {
 
   const handleDownloadCsv = () => {
     if (!measuredPolygons.length) return
-    const headers = ['STT', 'Tên đa giác', 'Số đoạn', 'Chu vi (m)', 'Diện tích (m2)', 'Chi tiết đoạn']
+    const headers = [
+      'STT',
+      'Hạng mục / Vùng',
+      'Loại',
+      'Số đoạn',
+      'Chu vi / Dài (m)',
+      'Cao độ H (m)',
+      'Diện tích Sàn (m2)',
+      'Diện tích Tường (m2)',
+      'Chi tiết đoạn',
+    ]
     const rowsCsv = [headers.join(',')]
     measuredPolygons.forEach((p, i) => {
       const segsText = p.segments.map(s => `P${s.index}:${s.lengthMeters.toFixed(2)}m`).join(' | ')
+      const h = p.heightMeters ?? 0
+      const wallArea = h > 0 ? p.perimeterMeters * h : 0
       rowsCsv.push(
         [
           i + 1,
           `"${p.name.replace(/"/g, '""')}"`,
+          p.kind === 'dist' ? 'Đoạn thẳng' : 'Vùng sàn',
           p.segments.length,
           p.perimeterMeters.toFixed(2),
-          p.areaSquareMeters.toFixed(3),
+          h > 0 ? h.toFixed(2) : '',
+          p.kind === 'dist' ? '' : p.areaSquareMeters.toFixed(3),
+          wallArea > 0 ? wallArea.toFixed(3) : '',
           `"${segsText}"`,
         ].join(',')
       )
     })
+    rowsCsv.push([
+      '',
+      '"TỔNG CỘNG"',
+      '',
+      '',
+      totalPerimeter.toFixed(2),
+      '',
+      totalArea.toFixed(3),
+      totalWallArea.toFixed(3),
+      '',
+    ].join(','))
     const blob = new Blob(['\uFEFF' + rowsCsv.join('\n')], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `do-dien-tich-${currentFileName.replace(/\.[^.]+$/, '')}.csv`
+    a.download = `boc-tach-khoi-luong-${currentFileName.replace(/\.[^.]+$/, '')}.csv`
     a.click()
     URL.revokeObjectURL(url)
   }
@@ -5905,7 +5973,7 @@ export const CadViewer: React.FC = () => {
                 </div>
               </div>
 
-              {/* Thẻ KPI dạng viên thuốc: Tổng diện tích sàn, Tổng chu vi, Gạch cần mua */}
+              {/* Thẻ KPI dạng viên thuốc: Tổng diện tích sàn, Tổng chu vi, Tổng diện tích tường, Gạch cần mua */}
               <div className="grid grid-cols-2 gap-1.5 sm:gap-2">
                 <div className="px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-teal-50 to-emerald-50/50 dark:from-teal-950/40 dark:to-emerald-950/20 border border-teal-200/80 dark:border-teal-800/80 shadow-2xs">
                   <div className="text-[10px] font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300 truncate">
@@ -5921,7 +5989,7 @@ export const CadViewer: React.FC = () => {
 
                 <div className="px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-slate-50 to-slate-100/60 dark:from-slate-850 dark:to-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xs">
                   <div className="text-[10px] font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-400 truncate">
-                    Tổng chu vi
+                    Tổng chu vi / Chiều dài
                   </div>
                   <div className="flex items-baseline gap-1 mt-0.5">
                     <span className="font-mono font-bold text-xl text-slate-800 dark:text-slate-100 tabular-nums">
@@ -5930,6 +5998,23 @@ export const CadViewer: React.FC = () => {
                     <span className="text-xs font-semibold text-slate-500">m</span>
                   </div>
                 </div>
+
+                {totalWallArea > 0 && (
+                  <div className="col-span-2 px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-indigo-50 to-purple-50/40 dark:from-indigo-950/40 dark:to-purple-950/20 border border-indigo-200/80 dark:border-indigo-800/70 shadow-2xs">
+                    <div className="flex items-center justify-between text-[10px] font-semibold uppercase tracking-wide text-indigo-800 dark:text-indigo-300">
+                      <span>Tổng diện tích tường (Chu vi × Cao độ)</span>
+                      <span className="font-mono font-semibold text-[10px] text-indigo-600 dark:text-indigo-400">
+                        Σ (P × H)
+                      </span>
+                    </div>
+                    <div className="flex items-baseline gap-1 mt-0.5">
+                      <span className="font-mono font-bold text-xl text-indigo-700 dark:text-indigo-300 tabular-nums">
+                        {fmtNum(totalWallArea, 2)}
+                      </span>
+                      <span className="text-xs font-semibold text-indigo-700/80 dark:text-indigo-400/80">m²</span>
+                    </div>
+                  </div>
+                )}
 
                 {tileConfig.on && (
                   <div className="col-span-2 px-2.5 py-1.5 rounded-lg bg-gradient-to-br from-amber-50 to-orange-50/40 dark:from-amber-950/40 dark:to-orange-950/20 border border-amber-200/80 dark:border-amber-800/70 shadow-2xs">
@@ -5949,6 +6034,45 @@ export const CadViewer: React.FC = () => {
                     </div>
                   </div>
                 )}
+              </div>
+
+              {/* Thanh gán cao độ nhanh (Batch Height Bar) */}
+              <div className="flex items-center justify-between gap-1.5 px-2 py-1 rounded-lg bg-slate-100/90 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/70 text-[11px]">
+                <span className="text-slate-600 dark:text-slate-300 font-medium shrink-0 text-[10px]">
+                  Cao độ tường (H):
+                </span>
+                <div className="flex items-center gap-1 overflow-x-auto no-scrollbar">
+                  {[2.8, 3.0, 3.3, 3.6].map(hVal => (
+                    <button
+                      key={hVal}
+                      type="button"
+                      onClick={() => handleApplyBatchHeight(hVal)}
+                      title={`Gán nhanh cao độ ${hVal}m cho toàn bộ vùng đo`}
+                      className="px-1.5 py-0.5 rounded font-mono text-[10px] font-semibold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 cursor-pointer transition-colors shrink-0"
+                    >
+                      {hVal}m
+                    </button>
+                  ))}
+                  <div className="flex items-center gap-0.5 shrink-0 ml-0.5">
+                    <input
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={batchHeightInput}
+                      onChange={e => setBatchHeightInput(e.target.value)}
+                      placeholder="m"
+                      className="w-10 px-1 py-0.2 text-right font-mono text-[10px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded focus:outline-none focus:border-indigo-500"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => handleApplyBatchHeight()}
+                      title="Gán chiều cao này cho toàn bộ vùng đo"
+                      className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-indigo-600 hover:bg-indigo-700 text-white cursor-pointer transition-colors"
+                    >
+                      Gán tất cả
+                    </button>
+                  </div>
+                </div>
               </div>
 
               {/* Thanh tab phân loại + tìm kiếm */}
@@ -5988,11 +6112,17 @@ export const CadViewer: React.FC = () => {
               <table className="w-full border-collapse text-xs tabular-nums">
                 <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-xs border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wide">
                   <tr>
-                    <th className="py-1.5 px-2.5 text-left font-semibold">Tên vùng / Đoạn</th>
-                    <th className="py-1.5 px-2 text-right font-semibold">Chu vi / Dài (m)</th>
-                    <th className="py-1.5 px-2 text-right font-semibold">Diện tích (m²)</th>
-                    {tileConfig.on && <th className="py-1.5 px-2 text-right font-semibold">Viên</th>}
-                    <th className="py-1.5 px-2 text-right font-semibold" />
+                    <th className="py-2 px-2.5 text-left font-semibold">Hạng mục / Vùng</th>
+                    <th className="py-2 px-2 text-right font-semibold">
+                      <div>Chu vi / Dài (m)</div>
+                      <div className="text-[9px] font-normal normal-case text-slate-400">Cao độ H (m)</div>
+                    </th>
+                    <th className="py-2 px-2 text-right font-semibold">
+                      <div>Diện tích (m²)</div>
+                      <div className="text-[9px] font-normal normal-case text-teal-600 dark:text-teal-400">Sàn & Tường</div>
+                    </th>
+                    {tileConfig.on && <th className="py-2 px-2 text-right font-semibold">Viên</th>}
+                    <th className="py-2 px-2 text-right font-semibold" />
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
@@ -6022,6 +6152,8 @@ export const CadViewer: React.FC = () => {
                       const tc = tileConfig.on
                         ? tileCalc(toTakeoffRow(poly, polyIdx), tileConfig, effectiveToMeters)
                         : null
+                      const h = poly.heightMeters ?? 0
+                      const wallArea = h > 0 ? poly.perimeterMeters * h : 0
 
                       return (
                         <React.Fragment key={poly.id}>
@@ -6063,17 +6195,67 @@ export const CadViewer: React.FC = () => {
                                   </span>
                                 )}
                               </div>
+                              <div className="text-[10px] text-slate-400 pl-4">
+                                {poly.kind === 'dist' ? 'Đoạn thẳng / Tuyến' : 'Vùng sàn khép kín'}
+                              </div>
                             </td>
 
-                            <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap text-slate-600 dark:text-slate-300">
-                              {poly.perimeterMeters.toFixed(2)}
+                            <td
+                              className="py-1.5 px-2 text-right font-mono whitespace-nowrap"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <div className="font-semibold text-slate-700 dark:text-slate-200 text-xs">
+                                {poly.perimeterMeters.toFixed(2)} m
+                              </div>
+                              <div className="flex items-center justify-end gap-1 mt-0.5">
+                                <span className="text-[10px] text-slate-400 font-sans">H:</span>
+                                <input
+                                  type="number"
+                                  step="0.05"
+                                  min="0"
+                                  placeholder="0"
+                                  value={poly.heightMeters !== undefined ? poly.heightMeters : ''}
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? undefined : Math.max(0, parseFloat(e.target.value) || 0)
+                                    setMeasuredPolygons(prev =>
+                                      prev.map(item => (item.id === poly.id ? { ...item, heightMeters: val } : item))
+                                    )
+                                  }}
+                                  title="Nhập chiều cao tường H (m) để tính diện tích tường (P × H)"
+                                  className="w-13 px-1 py-0.2 text-right font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:border-teal-500 focus:outline-none"
+                                />
+                                <span className="text-[10px] text-slate-400 font-sans">m</span>
+                              </div>
                             </td>
 
-                            <td className="py-1.5 px-2 text-right font-mono font-bold whitespace-nowrap text-teal-700 dark:text-teal-400">
+                            <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap">
                               {poly.kind === 'dist' ? (
-                                <span className="text-slate-400 font-normal">—</span>
+                                wallArea > 0 ? (
+                                  <div>
+                                    <div className="text-[10px] text-indigo-500 font-sans font-semibold">Vách (L×H)</div>
+                                    <div className="font-bold text-indigo-600 dark:text-indigo-400">
+                                      {wallArea.toFixed(2)} m²
+                                    </div>
+                                  </div>
+                                ) : (
+                                  <span className="text-slate-400 font-normal">—</span>
+                                )
                               ) : (
-                                poly.areaSquareMeters.toFixed(2)
+                                <div>
+                                  <div className="font-bold text-teal-700 dark:text-teal-400">
+                                    {poly.areaSquareMeters.toFixed(2)} m²
+                                    <span className="text-[9px] text-slate-400 font-sans font-normal ml-0.5">sàn</span>
+                                  </div>
+                                  {wallArea > 0 && (
+                                    <div
+                                      className="text-[11px] font-semibold text-indigo-600 dark:text-indigo-400 mt-0.5"
+                                      title={`Diện tích tường = Chu vi (${poly.perimeterMeters.toFixed(2)}m) × Cao độ (${h}m)`}
+                                    >
+                                      {wallArea.toFixed(2)} m²
+                                      <span className="text-[9px] text-indigo-400 font-sans font-normal ml-0.5">tường</span>
+                                    </div>
+                                  )}
+                                </div>
                               )}
                             </td>
 
@@ -6181,15 +6363,22 @@ export const CadViewer: React.FC = () => {
                 </tbody>
                 <tfoot className="sticky bottom-0 bg-white dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-700 font-semibold text-xs">
                   <tr>
-                    <td className="py-1 px-2 text-slate-700 dark:text-slate-300">Tổng cộng</td>
-                    <td className="py-1 px-1.5 text-right font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                      {fmtNum(totalPerimeter, 2)}
+                    <td className="py-1.5 px-2.5 text-slate-700 dark:text-slate-300">Tổng cộng</td>
+                    <td className="py-1.5 px-2 text-right font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
+                      {fmtNum(totalPerimeter, 2)} m
                     </td>
-                    <td className="py-1 px-2 text-right font-mono text-teal-700 dark:text-teal-400 whitespace-nowrap">
-                      {fmtNum(totalArea, 2)}
+                    <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap">
+                      <div className="text-teal-700 dark:text-teal-400 font-bold">
+                        {fmtNum(totalArea, 2)} m² <span className="text-[9px] font-normal text-slate-400">sàn</span>
+                      </div>
+                      {totalWallArea > 0 && (
+                        <div className="text-indigo-600 dark:text-indigo-400 font-bold text-[11px] mt-0.5">
+                          {fmtNum(totalWallArea, 2)} m² <span className="text-[9px] font-normal text-indigo-400">tường</span>
+                        </div>
+                      )}
                     </td>
                     {tileConfig.on && (
-                      <td className="py-1 px-1.5 text-right font-mono whitespace-nowrap">
+                      <td className="py-1.5 px-1.5 text-right font-mono whitespace-nowrap">
                         {tileSummary.total > 0 ? tileSummary.total : ''}
                       </td>
                     )}

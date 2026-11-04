@@ -35,6 +35,8 @@ export interface MeasuredPolygon {
   layoutBtrId?: string
   /** Tên Sheet / Layout hiển thị (ví dụ: 'Model', 'Layout1', ...) */
   layoutName?: string
+  /** Chiều cao / Cao độ tường (m) dùng để tính diện tích tường (chu vi × cao độ) */
+  heightMeters?: number
 }
 
 export interface InsunitsOption {
