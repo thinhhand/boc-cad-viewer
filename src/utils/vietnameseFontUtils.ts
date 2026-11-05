@@ -1,5 +1,5 @@
-import { AcApDocManager } from '@mlightcad/cad-simple-viewer'
-import { AcDbDatabase, AcDbMText, AcDbText } from '@mlightcad/data-model'
+import { AcApDocManager, eventBus, acapNotificationService as notificationService } from '@mlightcad/cad-simple-viewer'
+import { AcDbDatabase, AcDbMText, AcDbText, AcDbTextStyleTable } from '@mlightcad/data-model'
 import { FontManager } from '@mlightcad/mtext-renderer'
 
 export type FontEncodingHint = 'tcvn3' | 'tcvn3_upper' | 'vni' | 'unicode' | undefined
@@ -349,33 +349,91 @@ export function decodeVietnameseCadText(raw: string, styleHint?: FontEncodingHin
 
 /**
  * Bảng ánh xạ font thông dụng trong các bản vẽ AutoCAD Việt Nam sang các font Unicode chuẩn
+ * Hỗ trợ toàn diện mọi biến thể chữ hoa, chữ thường, tiền tố dấu chấm (.VnTime) và hậu tố (.shx / .ttf)
  */
 export const VIETNAMESE_CAD_FONT_MAPPINGS: Record<string, string> = {
-  // Font TCVN3 / ABC
-  vntime: 'Arial',
-  'vntime.shx': 'simplex',
-  vntimeh: 'Arial',
-  'vntimeh.shx': 'simplex',
-  '.vntime': 'Arial',
-  '.vntimeh': 'Arial',
-  '.vnarial': 'Arial',
-  '.vnarialh': 'Arial',
-  '.vncentury': 'Times New Roman',
-  '.vncourier': 'Courier New',
-  '.vnavo': 'Arial',
-  vnarial: 'Arial',
-  'vnarial.shx': 'simplex',
-  vnarialh: 'Arial',
-  'vnarialh.shx': 'simplex',
-  vncooper: 'Arial',
-  'vncooper.shx': 'simplex',
-  vnsimli: 'Arial',
+  // Font TCVN3 / ABC - Biến thể VnHelvetIns / VHELVCN
+  vnhelvetinsh: 'VNHELVS',
+  'vnhelvetinsh-medium': 'VNHELVS',
+  'vnhelvetinsh-bold': 'VHHELS',
+  vnhelvetins: 'VNHELVS',
+  vnhelv: 'VNHELVS',
+  'vnhelv.shx': 'VNHELVS',
+  vhelvcn: 'VNHELVS',
+  'vhelvcn.shx': 'VNHELVS',
+  vnhelvs: 'VNHELVS',
+  vhhels: 'VHHELS',
+  '.vnhelvetinsh': 'VNHELVS',
+  '.vnhelvetins': 'VNHELVS',
+  '.vnhelv': 'VNHELVS',
+  '.vhelvcn': 'VNHELVS',
+
+  // Viết hoa & Title Case cho TCVN3 Helvet
+  VnHelvetInsH: 'VNHELVS',
+  'VnHelvetInsH-Medium': 'VNHELVS',
+  'VnHelvetInsH-Bold': 'VHHELS',
+  VnHelvetIns: 'VNHELVS',
+  VHELVCN: 'VNHELVS',
+  'VHELVCN.SHX': 'VNHELVS',
+  VNHELVS: 'VNHELVS',
+  VHHELS: 'VHHELS',
+  '.VnHelvetInsH': 'VNHELVS',
+  '.VnHelvetIns': 'VNHELVS',
+
+  // Font TCVN3 / ABC - Biến thể VnArial
+  vnarial: 'VNARIAL',
+  'vnarial.shx': 'VNARIAL',
+  vnarialh: 'VNARIALB',
+  'vnarialh.shx': 'VNARIALB',
+  '.vnarial': 'VNARIAL',
+  '.vnarialh': 'VNARIALB',
+  VNARIAL: 'VNARIAL',
+  'VNARIAL.SHX': 'VNARIAL',
+  VNARIALH: 'VNARIALB',
+  'VNARIALH.SHX': 'VNARIALB',
+  VnArial: 'VNARIAL',
+  VnArialH: 'VNARIALB',
+  '.VnArial': 'VNARIAL',
+  '.VnArialH': 'VNARIALB',
+
+  // Font TCVN3 / ABC - Biến thể VnTime
+  vntime: 'VNTIME',
+  'vntime.shx': 'VNTIME',
+  vntimeh: 'VNTIMEB',
+  'vntimeh.shx': 'VNTIMEB',
+  '.vntime': 'VNTIME',
+  '.vntimeh': 'VNTIMEB',
+  VNTIME: 'VNTIME',
+  'VNTIME.SHX': 'VNTIME',
+  VNTIMEH: 'VNTIMEB',
+  'VNTIMEH.SHX': 'VNTIMEB',
+  VnTime: 'VNTIME',
+  VnTimeH: 'VNTIMEB',
+  '.VnTime': 'VNTIME',
+  '.VnTimeH': 'VNTIMEB',
+
+  // Các font TCVN3 khác
+  '.vncentury': 'VNCENTN',
+  vncentury: 'VNCENTN',
+  VNCENTN: 'VNCENTN',
+  '.vncourier': 'VNCOUR',
+  vncourier: 'VNCOUR',
+  VNCOUR: 'VNCOUR',
+  '.vnavo': 'VNAVAN',
+  vnavo: 'VNAVAN',
+  vnavan: 'VNAVAN',
+  VNAVAN: 'VNAVAN',
+  vncooper: 'VNCOOP',
+  'vncooper.shx': 'VNCOOP',
+  vncoop: 'VNCOOP',
+  VNCOOP: 'VNCOOP',
+  vnsimli: 'simplex',
   'vnsimli.shx': 'simplex',
-  vnsimple: 'Arial',
+  vnsimple: 'simplex',
   'vnsimple.shx': 'simplex',
-  vn_tcvn: 'Arial',
+  vn_tcvn: 'simplex',
   'vn_tcvn.shx': 'simplex',
-  abc: 'Arial',
+  abc: 'simplex',
   'abc.shx': 'simplex',
 
   // Font VNI-Windows
@@ -391,18 +449,501 @@ export const VIETNAMESE_CAD_FONT_MAPPINGS: Record<string, string> = {
   'vni_vni.shx': 'simplex',
   'vnitimes.shx': 'simplex',
   'vnihelve.shx': 'simplex',
+  'VNI-TIMES': 'Times New Roman',
+  'VNI-HELVE': 'Arial',
+  'VNI-ARIAL': 'Arial',
 
   // Font AutoCAD tiêu chuẩn
-  romans: 'simplex',
-  'romans.shx': 'simplex',
-  romand: 'simplex',
-  'romand.shx': 'simplex',
-  txt: 'simplex',
-  'txt.shx': 'simplex',
+  romans: 'romans',
+  'romans.shx': 'romans',
+  ROMANS: 'romans',
+  'ROMANS.SHX': 'romans',
+  romand: 'romans',
+  'romand.shx': 'romans',
+  txt: 'txt',
+  'txt.shx': 'txt',
+  TXT: 'txt',
+  'TXT.SHX': 'txt',
+  simplex: 'simplex',
   'simplex.shx': 'simplex',
+  SIMPLEX: 'simplex',
+  'SIMPLEX.SHX': 'simplex',
   'complex.shx': 'simplex',
   'italic.shx': 'simplex',
   'bigfont.shx': 'simplex',
+}
+
+/**
+ * Định nghĩa font CAD và kho tải trực tuyến / cục bộ
+ */
+export interface AutoFontDefinition {
+  fileName: string
+  aliases: string[]
+  localPath: string
+  remoteFallbackUrl?: string
+  description: string
+}
+
+/**
+ * Danh mục các font CAD thiết yếu được đóng gói sẵn và tự động tải bù khi thiếu
+ */
+export const ESSENTIAL_CAD_FONTS: AutoFontDefinition[] = [
+  {
+    fileName: 'VNHELVS.TTF',
+    aliases: [
+      'VnHelvetInsH-Medium',
+      'VnHelvetInsH',
+      'VnHelvetIns',
+      'vnhelvetinsh-medium',
+      'vnhelvetinsh',
+      'vnhelvetins',
+      'VHELVCN',
+      'vhelvcn',
+      'vhelvcn.shx',
+      'VNHELVS',
+      'vnhelvs',
+      'vhhels',
+      'VHHELS',
+      '.vnhelvetinsh',
+      '.vnhelvetins',
+      '.VnHelvetInsH',
+      '.VnHelvetIns',
+    ],
+    localPath: '/fonts/VNHELVS.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNHELVS.TTF',
+    description: 'Font TCVN3 tiêu đề & nét đậm (VnHelvetInsH / VHELVCN)',
+  },
+  {
+    fileName: 'VHHELS.TTF',
+    aliases: [
+      'VHHELS',
+      'vhhels',
+      'VnHelvetInsH-Bold',
+      'VnHelvetInsH-Medium',
+      'VHELVCN',
+      'vhelvcn',
+    ],
+    localPath: '/fonts/VHHELS.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VHHELS.TTF',
+    description: 'Font TCVN3 tiêu đề in hoa (VHHELS)',
+  },
+  {
+    fileName: 'VNARIAL.TTF',
+    aliases: [
+      'VNARIAL',
+      'vnarial',
+      'vnarial.ttf',
+      'vnarial.shx',
+      'VNARIAL.SHX',
+      '.vnarial',
+      '.VnArial',
+      'VnArial',
+    ],
+    localPath: '/fonts/VNARIAL.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNARIAL.TTF',
+    description: 'Font TCVN3 Arial phổ biến nhất bản vẽ CAD (VnArial)',
+  },
+  {
+    fileName: 'VNARIALB.TTF',
+    aliases: [
+      'VNARIALB',
+      'vnarialb',
+      'VNARIALH',
+      'vnarialh',
+      '.vnarialh',
+      '.VnArialH',
+      'VnArialH',
+    ],
+    localPath: '/fonts/VNARIALB.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNARIALB.TTF',
+    description: 'Font TCVN3 Arial Đậm (VnArialH)',
+  },
+  {
+    fileName: 'VNTIME.TTF',
+    aliases: [
+      'VNTIME',
+      'vntime',
+      'vntime.ttf',
+      'vntime.shx',
+      'VNTIME.SHX',
+      '.vntime',
+      '.VnTime',
+      'VnTime',
+    ],
+    localPath: '/fonts/VNTIME.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNTIME.TTF',
+    description: 'Font TCVN3 Times New Roman (VnTime)',
+  },
+  {
+    fileName: 'VNTIMEB.TTF',
+    aliases: [
+      'VNTIMEB',
+      'vntimeb',
+      'VNTIMEH',
+      'vntimeh',
+      '.vntimeh',
+      '.VnTimeH',
+      'VnTimeH',
+    ],
+    localPath: '/fonts/VNTIMEB.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNTIMEB.TTF',
+    description: 'Font TCVN3 Times Đậm (VnTimeH)',
+  },
+  {
+    fileName: 'VNCOOP.TTF',
+    aliases: ['VNCOOP', 'vncoop', 'vncooper', 'vncooper.shx', '.vncooper'],
+    localPath: '/fonts/VNCOOP.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNCOOP.TTF',
+    description: 'Font TCVN3 Cooper (VnCooper)',
+  },
+  {
+    fileName: 'VNCOUR.TTF',
+    aliases: ['VNCOUR', 'vncour', 'vncourier', 'vncourier.shx', '.vncourier'],
+    localPath: '/fonts/VNCOUR.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNCOUR.TTF',
+    description: 'Font TCVN3 Courier nét đơn (VnCourier)',
+  },
+  {
+    fileName: 'VNAVAN.TTF',
+    aliases: ['VNAVAN', 'vnavan', 'vnavo', '.vnavo', 'VnAvant'],
+    localPath: '/fonts/VNAVAN.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNAVAN.TTF',
+    description: 'Font TCVN3 AvantGarde (VnAvo)',
+  },
+  {
+    fileName: 'VNCENTN.TTF',
+    aliases: ['VNCENTN', 'vncent', 'vncentury', '.vncentury'],
+    localPath: '/fonts/VNCENTN.TTF',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/VNCENTN.TTF',
+    description: 'Font TCVN3 Century Schoolbook (VnCentury)',
+  },
+  {
+    fileName: 'simplex.shx',
+    aliases: ['simplex', 'simplex.shx', 'SIMPLEX', 'SIMPLEX.SHX', 'vnsimli', 'vnsimli.shx'],
+    localPath: '/fonts/simplex.shx',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/simplex.shx',
+    description: 'Font vector nét đơn AutoCAD tiêu chuẩn (simplex.shx)',
+  },
+  {
+    fileName: 'txt.shx',
+    aliases: ['txt', 'txt.shx', 'TXT', 'TXT.SHX'],
+    localPath: '/fonts/txt.shx',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/txt.shx',
+    description: 'Font chữ AutoCAD TXT tiêu chuẩn (txt.shx)',
+  },
+  {
+    fileName: 'romans.shx',
+    aliases: ['romans', 'romans.shx', 'ROMANS', 'ROMANS.SHX'],
+    localPath: '/fonts/romans.shx',
+    remoteFallbackUrl: 'https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/romans.shx',
+    description: 'Font Roman Simplex AutoCAD (romans.shx)',
+  },
+]
+
+// Bộ nhớ cache tạm các font đang trong quá trình tải về để tránh gọi trùng lặp
+const inFlightFontLoads = new Map<string, Promise<boolean>>()
+let isEssentialFontsPreloaded = false
+
+/**
+ * Tự động nạp trước các font CAD tiếng Việt thiết yếu vào bộ nhớ đệm
+ */
+export async function preloadEssentialCadFonts(
+  onProgress?: (loaded: number, total: number, currentName: string) => void
+): Promise<string[]> {
+  if (isEssentialFontsPreloaded) {
+    return ESSENTIAL_CAD_FONTS.map(f => f.fileName)
+  }
+
+  const loadedFonts: string[] = []
+  let count = 0
+
+  await Promise.allSettled(
+    ESSENTIAL_CAD_FONTS.map(async def => {
+      try {
+        let buffer: ArrayBuffer | null = null
+
+        // 1. Thử tải từ tài nguyên local
+        try {
+          const res = await fetch(def.localPath)
+          if (res.ok) {
+            buffer = await res.arrayBuffer()
+          }
+        } catch {
+          // Bỏ qua nếu fetch local không thành công
+        }
+
+        // 2. Nếu local không có, thử tải từ CDN dự phòng
+        if (!buffer && def.remoteFallbackUrl) {
+          try {
+            const res = await fetch(def.remoteFallbackUrl)
+            if (res.ok) {
+              buffer = await res.arrayBuffer()
+            }
+          } catch {
+            // ignore
+          }
+        }
+
+        if (buffer) {
+          const baseName = def.fileName.replace(/\.[^/.]+$/, '')
+          const allAliases = Array.from(
+            new Set([
+              def.fileName,
+              def.fileName.toLowerCase(),
+              baseName,
+              baseName.toLowerCase(),
+              ...def.aliases,
+              ...def.aliases.map(a => a.toLowerCase()),
+            ])
+          )
+
+          await FontManager.instance.cacheFont(buffer, def.fileName, allAliases)
+          loadedFonts.push(def.fileName)
+        }
+      } catch (err) {
+        console.warn(`Lưu ý khi nạp trước font ${def.fileName}:`, err)
+      } finally {
+        count++
+        onProgress?.(count, ESSENTIAL_CAD_FONTS.length, def.fileName)
+      }
+    })
+  )
+
+  isEssentialFontsPreloaded = true
+  return loadedFonts
+}
+
+/**
+ * Tự động tìm kiếm và tải về font bị thiếu từ bộ font nội bộ hoặc CDN từ xa
+ */
+export async function autoDownloadMissingFont(
+  fontName: string,
+  manager?: AcApDocManager
+): Promise<boolean> {
+  const cleanName = fontName.trim()
+  if (!cleanName) return false
+
+  const lower = cleanName.toLowerCase()
+  const baseName = cleanName.replace(/\.[^/.]+$/, '').toLowerCase()
+
+  // Kiểm tra nếu font này đã đang được tải
+  if (inFlightFontLoads.has(lower)) {
+    return inFlightFontLoads.get(lower)!
+  }
+
+  const loadPromise = (async (): Promise<boolean> => {
+    try {
+      // 1. Tìm trong danh mục ESSENTIAL_CAD_FONTS xem có font nào khớp không
+      const matchedDef = ESSENTIAL_CAD_FONTS.find(def => {
+        const defBase = def.fileName.replace(/\.[^/.]+$/, '').toLowerCase()
+        if (defBase === baseName || def.fileName.toLowerCase() === lower) return true
+        return def.aliases.some(
+          a => a.toLowerCase() === lower || a.toLowerCase() === baseName
+        )
+      })
+
+      let buffer: ArrayBuffer | null = null
+      let targetFileName = `${cleanName}.ttf`
+
+      if (matchedDef) {
+        targetFileName = matchedDef.fileName
+        try {
+          const res = await fetch(matchedDef.localPath)
+          if (res.ok) buffer = await res.arrayBuffer()
+        } catch {
+          // ignore
+        }
+        if (!buffer && matchedDef.remoteFallbackUrl) {
+          try {
+            const res = await fetch(matchedDef.remoteFallbackUrl)
+            if (res.ok) buffer = await res.arrayBuffer()
+          } catch {
+            // ignore
+          }
+        }
+      } else {
+        // 2. Thử suy luận từ tên font (quy tắc đặt tên font CAD Việt Nam)
+        let guessedUrl = ''
+        if (lower.startsWith('vn') || lower.startsWith('vh') || lower.startsWith('.vn')) {
+          // Họ font TCVN3
+          const fontCore = cleanName.replace(/^\./, '').toUpperCase()
+          targetFileName = `${fontCore}.TTF`
+          guessedUrl = `https://cdn.jsdelivr.net/gh/mwolfinspace/TCVN-Fix-Font-MacOS@master/${fontCore}.TTF`
+        } else if (lower.endsWith('.shx') || lower.includes('simplex') || lower.includes('roman') || lower.includes('txt')) {
+          // Font AutoCAD SHX
+          const shxName = cleanName.endsWith('.shx') ? cleanName : `${cleanName}.shx`
+          targetFileName = shxName
+          guessedUrl = `https://cdn.jsdelivr.net/gh/mlightcad/cad-data/fonts/${shxName}`
+        }
+
+        if (guessedUrl) {
+          try {
+            const res = await fetch(guessedUrl)
+            if (res.ok) buffer = await res.arrayBuffer()
+          } catch {
+            // ignore
+          }
+        }
+      }
+
+      if (buffer) {
+        const ext = targetFileName.split('.').pop() || 'ttf'
+        const base = targetFileName.replace(/\.[^/.]+$/, '')
+        const allAliases = Array.from(
+          new Set([
+            cleanName,
+            cleanName.toLowerCase(),
+            cleanName.toUpperCase(),
+            baseName,
+            baseName.toLowerCase(),
+            baseName.toUpperCase(),
+            targetFileName,
+            targetFileName.toLowerCase(),
+            base,
+            base.toLowerCase(),
+          ])
+        )
+
+        await FontManager.instance.cacheFont(buffer, targetFileName, allAliases)
+
+        // Tự động xóa thông báo Missing Font tương ứng trong notificationCenter
+        try {
+          notificationService.center.removeWhere(n => {
+            if (n.source !== 'font-missed') return false
+            const names = n.fontNames || []
+            return names.some(
+              name =>
+                name.toLowerCase() === lower ||
+                name.toLowerCase() === baseName ||
+                name.toLowerCase() === targetFileName.toLowerCase()
+            )
+          })
+        } catch {
+          // ignore
+        }
+
+        // Tái tạo bản vẽ để chữ hiển thị ngay với font mới nạp
+        if (manager) {
+          try {
+            manager.regen()
+          } catch {
+            // ignore
+          }
+        }
+
+        return true
+      }
+      return false
+    } catch (err) {
+      console.warn(`Không thể tự động tải font ${fontName}:`, err)
+      return false
+    } finally {
+      inFlightFontLoads.delete(lower)
+    }
+  })()
+
+  inFlightFontLoads.set(lower, loadPromise)
+  return loadPromise
+}
+
+/**
+ * Quét toàn bộ bảng Text Style trong Database và tự động tải tất cả các font bị thiếu
+ */
+export async function autoResolveAllMissingFonts(
+  manager: AcApDocManager,
+  onProgress?: (statusText: string) => void
+): Promise<{ resolved: string[]; failed: string[] }> {
+  const resolved: string[] = []
+  const failed: string[] = []
+
+  const db = manager.curDocument?.database
+  if (!db?.tables?.textStyleTable) {
+    return { resolved, failed }
+  }
+
+  const missingFonts = new Set<string>()
+
+  try {
+    // 1. Quét từ danh sách font khai báo trong textStyleTable
+    const rawFonts = db.tables.textStyleTable.fonts || []
+    for (const f of rawFonts) {
+      if (f && !FontManager.instance.getFontByName(f, false)) {
+        missingFonts.add(f)
+      }
+    }
+
+    // 2. Quét qua các Text Style records
+    for (const record of db.tables.textStyleTable.newIterator()) {
+      if (record.fileName && !FontManager.instance.getFontByName(record.fileName, false)) {
+        missingFonts.add(record.fileName)
+      }
+      if (record.bigFontFileName && !FontManager.instance.getFontByName(record.bigFontFileName, false)) {
+        missingFonts.add(record.bigFontFileName)
+      }
+      if (record.name && !FontManager.instance.getFontByName(record.name, false)) {
+        const hint = detectFontEncodingFromName(record.name)
+        if (hint) {
+          missingFonts.add(record.name)
+        }
+      }
+    }
+  } catch {
+    // ignore
+  }
+
+  if (missingFonts.size === 0) {
+    return { resolved, failed }
+  }
+
+  onProgress?.(`Đang tự động tải ${missingFonts.size} font CAD bị thiếu...`)
+
+  const fontArray = Array.from(missingFonts)
+  await Promise.allSettled(
+    fontArray.map(async fontName => {
+      const ok = await autoDownloadMissingFont(fontName, manager)
+      if (ok) {
+        resolved.push(fontName)
+      } else {
+        failed.push(fontName)
+      }
+    })
+  )
+
+  if (resolved.length > 0) {
+    try {
+      manager.regen()
+    } catch {
+      // ignore
+    }
+  }
+
+  return { resolved, failed }
+}
+
+let isEventListenerBound = false
+
+/**
+ * Thiết lập lắng nghe sự kiện thiếu font từ EventBus để kích hoạt tự động tải font ngầm
+ */
+export function setupAutoFontDownloadListener(manager: AcApDocManager): void {
+  if (isEventListenerBound) return
+  isEventListenerBound = true
+
+  eventBus.on('font-not-found', async (params: unknown) => {
+    const p = params as { fontName?: string }
+    if (p?.fontName) {
+      await autoDownloadMissingFont(p.fontName, manager)
+    }
+  })
+
+  eventBus.on('fonts-not-found', async (params: unknown) => {
+    const p = params as { fonts?: string[] }
+    if (Array.isArray(p?.fonts)) {
+      for (const f of p.fonts) {
+        await autoDownloadMissingFont(f, manager)
+      }
+    }
+  })
 }
 
 /**
@@ -410,7 +951,7 @@ export const VIETNAMESE_CAD_FONT_MAPPINGS: Record<string, string> = {
  */
 export async function applyVietnameseFontConfiguration(manager: AcApDocManager): Promise<void> {
   try {
-    // 1. Áp dụng bảng ánh xạ font tiếng Việt
+    // 1. Áp dụng bảng ánh xạ font tiếng Việt toàn diện
     FontManager.instance.setFontMapping(VIETNAMESE_CAD_FONT_MAPPINGS)
 
     // 2. Thiết lập chuỗi font dự phòng ưu tiên hiển thị Unicode tiếng Việt
@@ -424,7 +965,13 @@ export async function applyVietnameseFontConfiguration(manager: AcApDocManager):
       )
     }
 
-    // 4. Nạp font Unicode chuẩn từ CDN / FontLoader
+    // 4. Lắng nghe sự kiện để tự động tải font bị thiếu
+    setupAutoFontDownloadListener(manager)
+
+    // 5. Nạp trước các font CAD tiếng Việt thiết yếu vào bộ nhớ
+    preloadEssentialCadFonts().catch(() => {})
+
+    // 6. Nạp font Unicode chuẩn từ CDN / FontLoader
     await manager.loadFonts(['Arial', 'Times New Roman'])
   } catch (err) {
     console.warn('Lưu ý khi cấu hình Font tiếng Việt:', err)
