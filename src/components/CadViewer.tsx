@@ -1283,6 +1283,7 @@ export const CadViewer: React.FC = () => {
   const [cursorWcs, setCursorWcs] = useState<Point2D>({ x: 0, y: 0 })
   const [measuredPolygons, setMeasuredPolygons] = useState<MeasuredPolygon[]>([])
   const [selectedPolygonId, setSelectedPolygonId] = useState<string | null>(null)
+  const [hoveredPolygonId, setHoveredPolygonId] = useState<string | null>(null)
   const [drawingExtents, setDrawingExtents] = useState<[number, number, number, number] | null>(null)
   const drawingExtentsRef = useRef<[number, number, number, number] | null>(null)
 
@@ -1358,6 +1359,8 @@ export const CadViewer: React.FC = () => {
   calLineRef.current = calLine
   const selectedPolygonIdRef = useRef(selectedPolygonId)
   selectedPolygonIdRef.current = selectedPolygonId
+  const hoveredPolygonIdRef = useRef(hoveredPolygonId)
+  hoveredPolygonIdRef.current = hoveredPolygonId
   const layersRef = useRef(layers)
   layersRef.current = layers
   const tileConfigRef = useRef(tileConfig)
@@ -1629,6 +1632,7 @@ export const CadViewer: React.FC = () => {
 
       const isDist = poly.kind === 'dist' || poly.points.length < 3
       const isSelected = poly.id === selectedPolygonIdRef.current
+      const isHovered = poly.id === hoveredPolygonIdRef.current
       const screenPts = poly.points.map(pt => view.worldToScreen(pt))
 
       // Tô nền mờ chỉ dành cho đa giác diện tích khép kín (>= 3 đỉnh)
@@ -1639,7 +1643,10 @@ export const CadViewer: React.FC = () => {
           ctx.lineTo(screenPts[i].x, screenPts[i].y)
         }
         ctx.closePath()
-        ctx.fillStyle = hexToRgba(poly.color, isSelected ? 0.35 : 0.2)
+        ctx.fillStyle = hexToRgba(
+          isHovered ? '#f59e0b' : poly.color,
+          isHovered ? 0.45 : isSelected ? 0.35 : 0.2
+        )
         ctx.fill()
       }
 
@@ -1714,6 +1721,16 @@ export const CadViewer: React.FC = () => {
       }
 
       // Viền đường đo hoặc viền đa giác
+      ctx.save()
+      if (isHovered) {
+        ctx.shadowColor = 'rgba(245, 158, 11, 0.95)'
+        ctx.shadowBlur = 16
+        ctx.lineWidth = 4.5
+        ctx.strokeStyle = '#f59e0b'
+      } else {
+        ctx.lineWidth = isSelected ? 3 : 2
+        ctx.strokeStyle = poly.color
+      }
       ctx.beginPath()
       ctx.moveTo(screenPts[0].x, screenPts[0].y)
       for (let i = 1; i < screenPts.length; i++) {
@@ -1722,10 +1739,9 @@ export const CadViewer: React.FC = () => {
       if (!isDist && screenPts.length >= 3) {
         ctx.closePath()
       }
-      ctx.lineWidth = isSelected ? 3 : 2
-      ctx.strokeStyle = poly.color
       ctx.setLineDash([])
       ctx.stroke()
+      ctx.restore()
 
       // Vẽ nhãn chiều dài từng đoạn trên các cạnh
       const maxSegCount = isDist ? screenPts.length - 1 : screenPts.length
@@ -1743,8 +1759,8 @@ export const CadViewer: React.FC = () => {
             const textWidth = ctx.measureText(label).width
             ctx.fillStyle = 'rgba(15, 23, 42, 0.86)'
             ctx.fillRect(midX - textWidth / 2 - 4, midY - 9, textWidth + 8, 18)
-            ctx.strokeStyle = hexToRgba(poly.color, 0.7)
-            ctx.lineWidth = 1
+            ctx.strokeStyle = hexToRgba(isHovered ? '#f59e0b' : poly.color, isHovered ? 1 : 0.7)
+            ctx.lineWidth = isHovered ? 1.5 : 1
             ctx.strokeRect(midX - textWidth / 2 - 4, midY - 9, textWidth + 8, 18)
             ctx.fillStyle = '#f8fafc'
             ctx.textAlign = 'center'
@@ -1757,16 +1773,16 @@ export const CadViewer: React.FC = () => {
       // Vẽ các đỉnh của đa giác / đường đo
       screenPts.forEach((sp, idx) => {
         ctx.beginPath()
-        ctx.arc(sp.x, sp.y, isSelected ? 5 : 4, 0, Math.PI * 2)
-        ctx.fillStyle = '#0f172a'
+        ctx.arc(sp.x, sp.y, isHovered ? 6 : isSelected ? 5 : 4, 0, Math.PI * 2)
+        ctx.fillStyle = isHovered ? '#f59e0b' : '#0f172a'
         ctx.fill()
-        ctx.lineWidth = 2
-        ctx.strokeStyle = poly.color
+        ctx.lineWidth = isHovered ? 2.5 : 2
+        ctx.strokeStyle = isHovered ? '#ffffff' : poly.color
         ctx.stroke()
 
-        if (isSelected) {
+        if (isSelected || isHovered) {
           ctx.font = 'bold 10px "JetBrains Mono", monospace'
-          ctx.fillStyle = '#f59e0b'
+          ctx.fillStyle = isHovered ? '#f59e0b' : '#38bdf8'
           ctx.textAlign = 'left'
           ctx.textBaseline = 'bottom'
           ctx.fillText(`P${idx + 1}`, sp.x + 6, sp.y - 4)
@@ -1788,7 +1804,12 @@ export const CadViewer: React.FC = () => {
       const boxW = Math.max(w1, w2) + 18
       const boxH = 38
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.92)'
+      ctx.save()
+      if (isHovered) {
+        ctx.shadowColor = 'rgba(245, 158, 11, 0.8)'
+        ctx.shadowBlur = 12
+      }
+      ctx.fillStyle = isHovered ? 'rgba(30, 27, 75, 0.95)' : 'rgba(15, 23, 42, 0.92)'
       ctx.beginPath()
       ctx.roundRect(
         centroidScreen.x - boxW / 2,
@@ -1798,17 +1819,18 @@ export const CadViewer: React.FC = () => {
         6
       )
       ctx.fill()
-      ctx.lineWidth = isSelected ? 2 : 1.5
-      ctx.strokeStyle = poly.color
+      ctx.lineWidth = isHovered ? 3 : isSelected ? 2 : 1.5
+      ctx.strokeStyle = isHovered ? '#f59e0b' : poly.color
       ctx.stroke()
+      ctx.restore()
 
-      ctx.fillStyle = '#cbd5e1'
+      ctx.fillStyle = isHovered ? '#fef08a' : '#cbd5e1'
       ctx.font = '600 10px "Be Vietnam Pro", sans-serif'
       ctx.textAlign = 'center'
       ctx.textBaseline = 'middle'
       ctx.fillText(titleText, centroidScreen.x, centroidScreen.y - 8)
 
-      ctx.fillStyle = isDist ? '#38bdf8' : '#2dd4bf'
+      ctx.fillStyle = isHovered ? '#38bdf8' : isDist ? '#38bdf8' : '#2dd4bf'
       ctx.font = 'bold 13px "JetBrains Mono", monospace'
       ctx.fillText(badgeValueText, centroidScreen.x, centroidScreen.y + 8)
     })
@@ -2080,6 +2102,7 @@ export const CadViewer: React.FC = () => {
     showGhostHidden,
     measuredPolygons,
     selectedPolygonId,
+    hoveredPolygonId,
     calLine,
     mode,
     tileConfig,
@@ -4124,10 +4147,10 @@ export const CadViewer: React.FC = () => {
       'Hạng mục / Vùng',
       'Loại',
       'Số đoạn',
-      'Chu vi / Dài (m)',
-      'Cao độ H (m)',
       'Diện tích Sàn (m²)',
       'Diện tích Tường (m²)',
+      'Chu vi / Dài (m)',
+      'Cao độ H (m)',
       'Chi tiết các đoạn (m)',
     ]
     const lines = [headers.join('\t')]
@@ -4141,10 +4164,10 @@ export const CadViewer: React.FC = () => {
           p.name,
           p.kind === 'dist' ? 'Đoạn thẳng' : 'Vùng sàn',
           p.segments.length,
-          p.perimeterMeters.toFixed(2),
-          h > 0 ? h.toFixed(2) : '',
           p.kind === 'dist' ? '' : p.areaSquareMeters.toFixed(3),
           wallArea > 0 ? wallArea.toFixed(3) : '',
+          p.perimeterMeters.toFixed(2),
+          h > 0 ? h.toFixed(2) : '',
           segsText,
         ].join('\t')
       )
@@ -4154,10 +4177,10 @@ export const CadViewer: React.FC = () => {
       'TỔNG CỘNG',
       '',
       '',
-      totalPerimeter.toFixed(2),
-      '',
       totalArea.toFixed(3),
       totalWallArea.toFixed(3),
+      totalPerimeter.toFixed(2),
+      '',
       '',
     ].join('\t'))
     await navigator.clipboard.writeText(lines.join('\n'))
@@ -4172,10 +4195,10 @@ export const CadViewer: React.FC = () => {
       'Hạng mục / Vùng',
       'Loại',
       'Số đoạn',
-      'Chu vi / Dài (m)',
-      'Cao độ H (m)',
       'Diện tích Sàn (m2)',
       'Diện tích Tường (m2)',
+      'Chu vi / Dài (m)',
+      'Cao độ H (m)',
       'Chi tiết đoạn',
     ]
     const rowsCsv = [headers.join(',')]
@@ -4189,10 +4212,10 @@ export const CadViewer: React.FC = () => {
           `"${p.name.replace(/"/g, '""')}"`,
           p.kind === 'dist' ? 'Đoạn thẳng' : 'Vùng sàn',
           p.segments.length,
-          p.perimeterMeters.toFixed(2),
-          h > 0 ? h.toFixed(2) : '',
           p.kind === 'dist' ? '' : p.areaSquareMeters.toFixed(3),
           wallArea > 0 ? wallArea.toFixed(3) : '',
+          p.perimeterMeters.toFixed(2),
+          h > 0 ? h.toFixed(2) : '',
           `"${segsText}"`,
         ].join(',')
       )
@@ -4202,10 +4225,10 @@ export const CadViewer: React.FC = () => {
       '"TỔNG CỘNG"',
       '',
       '',
-      totalPerimeter.toFixed(2),
-      '',
       totalArea.toFixed(3),
       totalWallArea.toFixed(3),
+      totalPerimeter.toFixed(2),
+      '',
       '',
     ].join(','))
     const blob = new Blob(['\uFEFF' + rowsCsv.join('\n')], { type: 'text/csv;charset=utf-8;' })
@@ -6046,23 +6069,27 @@ export const CadViewer: React.FC = () => {
 
             {/* Phần 2: Bảng chi tiết khối lượng (Data Grid) */}
             <div className="flex-1 overflow-auto min-h-0">
-              <table className="w-full border-collapse text-xs tabular-nums">
-                <thead className="sticky top-0 z-10 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-xs border-b border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 text-[10px] uppercase tracking-wide">
-                  <tr>
-                    <th className="py-2 px-2.5 text-left font-semibold">Hạng mục / Vùng</th>
-                    <th className="py-2 px-2 text-right font-semibold">
-                      <div>Chu vi / Dài (m)</div>
-                      <div className="text-[9px] font-normal normal-case text-slate-400">Cao độ H (m)</div>
+              <table className="w-full border-collapse text-xs tabular-nums border border-slate-300 dark:border-slate-700">
+                <thead className="sticky top-0 z-10 bg-slate-100 dark:bg-slate-800 backdrop-blur-xs text-slate-700 dark:text-slate-300 text-[10px] uppercase tracking-wide">
+                  <tr className="border-b-2 border-slate-300 dark:border-slate-600">
+                    <th className="py-2 px-2.5 text-left font-semibold border-r border-slate-300 dark:border-slate-700">
+                      Hạng mục / Vùng
                     </th>
-                    <th className="py-2 px-2 text-right font-semibold">
+                    <th className="py-2 px-2 text-right font-semibold border-r border-slate-300 dark:border-slate-700">
                       <div>Diện tích (m²)</div>
                       <div className="text-[9px] font-normal normal-case text-teal-600 dark:text-teal-400">Sàn & Tường</div>
                     </th>
-                    {tileConfig.on && <th className="py-2 px-2 text-right font-semibold">Viên</th>}
+                    <th className="py-2 px-2 text-right font-semibold border-r border-slate-300 dark:border-slate-700">
+                      <div>Chu vi / Dài (m)</div>
+                      <div className="text-[9px] font-normal normal-case text-slate-500 dark:text-slate-400">Cao độ H (m)</div>
+                    </th>
+                    {tileConfig.on && (
+                      <th className="py-2 px-2 text-right font-semibold border-r border-slate-300 dark:border-slate-700">Viên</th>
+                    )}
                     <th className="py-2 px-2 text-right font-semibold" />
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/80">
+                <tbody className="divide-y divide-slate-200 dark:divide-slate-700/80">
                   {filteredPolygons.length === 0 ? (
                     <tr>
                       <td
@@ -6085,6 +6112,7 @@ export const CadViewer: React.FC = () => {
                     filteredPolygons.map(poly => {
                       const polyIdx = measuredPolygons.findIndex(p => p.id === poly.id)
                       const isSelected = poly.id === selectedPolygonId
+                      const isHovered = poly.id === hoveredPolygonId
                       const isExpanded = expandedPolyIds.has(poly.id)
                       const tc = tileConfig.on
                         ? tileCalc(toTakeoffRow(poly, polyIdx), tileConfig, effectiveToMeters)
@@ -6096,15 +6124,19 @@ export const CadViewer: React.FC = () => {
                         <React.Fragment key={poly.id}>
                           <tr
                             onClick={() => setSelectedPolygonId(isSelected ? null : poly.id)}
-                            className={`transition-colors cursor-pointer ${
+                            onMouseEnter={() => setHoveredPolygonId(poly.id)}
+                            onMouseLeave={() => setHoveredPolygonId(null)}
+                            className={`transition-colors cursor-pointer border-b border-slate-200 dark:border-slate-700/80 ${
                               !poly.visible ? 'opacity-40' : ''
                             } ${
-                              isSelected
-                                ? 'bg-teal-500/10 dark:bg-teal-500/15 border-l-3 border-teal-500'
-                                : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'
+                              isHovered
+                                ? 'bg-amber-500/15 dark:bg-amber-500/20'
+                                : isSelected
+                                  ? 'bg-teal-500/15 dark:bg-teal-500/20'
+                                  : 'hover:bg-slate-50/80 dark:hover:bg-slate-800/60'
                             }`}
                           >
-                            <td className="py-1.5 px-2.5" onClick={e => e.stopPropagation()}>
+                            <td className="py-1.5 px-2.5 border-r border-slate-200 dark:border-slate-700/80" onClick={e => e.stopPropagation()}>
                               <div className="flex items-center gap-1.5 min-w-0">
                                 <span
                                   className="w-2.5 h-2.5 rounded-full shrink-0 ring-1 ring-black/10 dark:ring-white/10"
@@ -6137,35 +6169,7 @@ export const CadViewer: React.FC = () => {
                               </div>
                             </td>
 
-                            <td
-                              className="py-1.5 px-2 text-right font-mono whitespace-nowrap"
-                              onClick={e => e.stopPropagation()}
-                            >
-                              <div className="font-semibold text-slate-700 dark:text-slate-200 text-xs">
-                                {poly.perimeterMeters.toFixed(2)} m
-                              </div>
-                              <div className="flex items-center justify-end gap-1 mt-0.5">
-                                <span className="text-[10px] text-slate-400 font-sans">H:</span>
-                                <input
-                                  type="number"
-                                  step="0.05"
-                                  min="0"
-                                  placeholder="0"
-                                  value={poly.heightMeters !== undefined ? poly.heightMeters : ''}
-                                  onChange={e => {
-                                    const val = e.target.value === '' ? undefined : Math.max(0, parseFloat(e.target.value) || 0)
-                                    setMeasuredPolygons(prev =>
-                                      prev.map(item => (item.id === poly.id ? { ...item, heightMeters: val } : item))
-                                    )
-                                  }}
-                                  title="Nhập chiều cao tường H (m) để tính diện tích tường (P × H)"
-                                  className="w-13 px-1 py-0.2 text-right font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:border-teal-500 focus:outline-none"
-                                />
-                                <span className="text-[10px] text-slate-400 font-sans">m</span>
-                              </div>
-                            </td>
-
-                            <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap">
+                            <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap border-r border-slate-200 dark:border-slate-700/80">
                               {poly.kind === 'dist' ? (
                                 wallArea > 0 ? (
                                   <div>
@@ -6196,8 +6200,36 @@ export const CadViewer: React.FC = () => {
                               )}
                             </td>
 
+                            <td
+                              className="py-1.5 px-2 text-right font-mono whitespace-nowrap border-r border-slate-200 dark:border-slate-700/80"
+                              onClick={e => e.stopPropagation()}
+                            >
+                              <div className="font-semibold text-slate-700 dark:text-slate-200 text-xs">
+                                {poly.perimeterMeters.toFixed(2)} m
+                              </div>
+                              <div className="flex items-center justify-end gap-1 mt-0.5">
+                                <span className="text-[10px] text-slate-400 font-sans">H:</span>
+                                <input
+                                  type="number"
+                                  step="0.05"
+                                  min="0"
+                                  placeholder="0"
+                                  value={poly.heightMeters !== undefined ? poly.heightMeters : ''}
+                                  onChange={e => {
+                                    const val = e.target.value === '' ? undefined : Math.max(0, parseFloat(e.target.value) || 0)
+                                    setMeasuredPolygons(prev =>
+                                      prev.map(item => (item.id === poly.id ? { ...item, heightMeters: val } : item))
+                                    )
+                                  }}
+                                  title="Nhập chiều cao tường H (m) để tính diện tích tường (P × H)"
+                                  className="w-13 px-1 py-0.2 text-right font-mono text-[11px] bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded focus:border-teal-500 focus:outline-none"
+                                />
+                                <span className="text-[10px] text-slate-400 font-sans">m</span>
+                              </div>
+                            </td>
+
                             {tileConfig.on && (
-                              <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap text-slate-800 dark:text-slate-100">
+                              <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap text-slate-800 dark:text-slate-100 border-r border-slate-200 dark:border-slate-700/80">
                                 {tc && !tc.big ? tc.full + tc.cut : <span className="text-slate-300">—</span>}
                               </td>
                             )}
@@ -6274,7 +6306,7 @@ export const CadViewer: React.FC = () => {
 
                           {/* Chi tiết các đoạn: mặc định ẩn, bấm nút "Nđ ▸" để hiện */}
                           {isExpanded && (
-                            <tr className="bg-slate-50/90 dark:bg-slate-950/80">
+                            <tr className="bg-slate-50/90 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-700/80">
                               <td colSpan={tileConfig.on ? 5 : 4} className="px-3 py-2">
                                 <div className="flex flex-wrap gap-1">
                                   {poly.segments.map(seg => (
@@ -6298,13 +6330,12 @@ export const CadViewer: React.FC = () => {
                     })
                   )}
                 </tbody>
-                <tfoot className="sticky bottom-0 bg-white dark:bg-slate-900 border-t-2 border-slate-200 dark:border-slate-700 font-semibold text-xs">
+                <tfoot className="sticky bottom-0 bg-slate-50 dark:bg-slate-900 border-t-2 border-slate-300 dark:border-slate-600 font-semibold text-xs">
                   <tr>
-                    <td className="py-1.5 px-2.5 text-slate-700 dark:text-slate-300">Tổng cộng</td>
-                    <td className="py-1.5 px-2 text-right font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                      {fmtNum(totalPerimeter, 2)} m
+                    <td className="py-1.5 px-2.5 text-slate-700 dark:text-slate-300 border-r border-slate-300 dark:border-slate-700">
+                      Tổng cộng
                     </td>
-                    <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap">
+                    <td className="py-1.5 px-2 text-right font-mono whitespace-nowrap border-r border-slate-300 dark:border-slate-700">
                       <div className="text-teal-700 dark:text-teal-400 font-bold">
                         {fmtNum(totalArea, 2)} m² <span className="text-[9px] font-normal text-slate-400">sàn</span>
                       </div>
@@ -6314,8 +6345,11 @@ export const CadViewer: React.FC = () => {
                         </div>
                       )}
                     </td>
+                    <td className="py-1.5 px-2 text-right font-mono text-slate-600 dark:text-slate-400 whitespace-nowrap border-r border-slate-300 dark:border-slate-700">
+                      {fmtNum(totalPerimeter, 2)} m
+                    </td>
                     {tileConfig.on && (
-                      <td className="py-1.5 px-1.5 text-right font-mono whitespace-nowrap">
+                      <td className="py-1.5 px-1.5 text-right font-mono whitespace-nowrap border-r border-slate-300 dark:border-slate-700">
                         {tileSummary.total > 0 ? tileSummary.total : ''}
                       </td>
                     )}
