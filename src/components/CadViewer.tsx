@@ -4367,16 +4367,6 @@ export const CadViewer: React.FC = () => {
 
           <button
             type="button"
-            onClick={() => setShowUrlModal(true)}
-            title="Mở bản vẽ DWG / DXF trực tiếp từ đường dẫn URL"
-            className="hidden md:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all cursor-pointer shrink-0"
-          >
-            <Link2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
-            <span className="hidden lg:inline">Mở URL</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => overlayInputRef.current?.click()}
             title="Chồng lớp bản vẽ tham chiếu (XREF Overlay DWG/DXF) lên bản vẽ hiện tại"
             className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all cursor-pointer shrink-0"
