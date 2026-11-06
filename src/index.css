@@ -38,9 +38,14 @@ body {
   font-family: var(--font-sans);
 }
 
-/* Tắt triệt để thanh shortcut toolbar nổi của @mlightcad */
+/* Tắt triệt để thanh shortcut toolbar và bảng thông báo Notifications của @mlightcad */
 div.ml-ui-shortcut-toolbar-shell,
-.ml-ui-shortcut-toolbar-shell {
+.ml-ui-shortcut-toolbar-shell,
+div.ml-ui-notification-center,
+.ml-ui-notification-center,
+.ml-ui-notification-center__panel,
+.ml-ui-notification-center__bell,
+.ml-ui-notification-center__backdrop {
   display: none !important;
   visibility: hidden !important;
   pointer-events: none !important;

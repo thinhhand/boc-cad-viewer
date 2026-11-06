@@ -965,10 +965,46 @@ export async function applyVietnameseFontConfiguration(manager: AcApDocManager):
       )
     }
 
-    // 4. Dọn dẹp cảnh báo font thiếu ngầm (không gọi mạng, không làm chậm tải file)
+    // 4. Triệt tiêu toàn bộ cảnh báo thiếu font trong notification center
+    try {
+      notificationService.center.clear()
+      const centerObj = notificationService.center as unknown as {
+        add?: (item: unknown) => string
+        warning?: (...args: unknown[]) => unknown
+      }
+      if (centerObj && !((centerObj as unknown as { __fontMuted?: boolean }).__fontMuted)) {
+        ;(centerObj as unknown as { __fontMuted?: boolean }).__fontMuted = true
+        const origAdd = centerObj.add?.bind(centerObj)
+        if (origAdd) {
+          centerObj.add = (item: unknown) => {
+            const it = item as { source?: string; title?: string; message?: string }
+            if (
+              it?.source === 'font-missed' ||
+              it?.title?.toLowerCase?.().includes('font') ||
+              it?.message?.toLowerCase?.().includes('font')
+            ) {
+              return ''
+            }
+            return origAdd(item)
+          }
+        }
+      }
+    } catch {
+      // ignore
+    }
+
     eventBus.on('font-not-found', () => {
       try {
         notificationService.center.removeWhere(n => n.source === 'font-missed')
+        notificationService.center.clear()
+      } catch {
+        // ignore
+      }
+    })
+    eventBus.on('fonts-not-found', () => {
+      try {
+        notificationService.center.removeWhere(n => n.source === 'font-missed')
+        notificationService.center.clear()
       } catch {
         // ignore
       }

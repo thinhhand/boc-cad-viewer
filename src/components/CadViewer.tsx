@@ -1324,7 +1324,12 @@ export const CadViewer: React.FC = () => {
 
   // State Sidebar phải & Bộ lọc bảng kết quả
   const [sidebarWidth, setSidebarWidth] = useState<number>(460)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.innerWidth < 1024
+    }
+    return false
+  })
   const [searchQuery, setSearchQuery] = useState<string>('')
   const [listFilter, setListFilter] = useState<'all' | 'floor' | 'dist'>('all')
   // Danh sách vùng đang mở chi tiết các đoạn (mặc định ẩn)
@@ -3493,6 +3498,218 @@ export const CadViewer: React.FC = () => {
     hostEl.addEventListener('auxclick', onAuxClickCapture, true)
     window.addEventListener('auxclick', onAuxClickCapture, true)
 
+    // ==================== HỖ TRỢ VÀ TỐI ƯU CẢM ỨNG MOBILE (PAN, PINCH-ZOOM, TAP) ====================
+    hostEl.style.touchAction = 'none'
+    canvasEl.style.touchAction = 'none'
+
+    let touchStartPoints: { clientX: number; clientY: number }[] = []
+    let touchStartDist = 0
+    let touchStartTime = 0
+    let touchDragged = false
+    let touchLastPos: { clientX: number; clientY: number } | null = null
+    let lastTapTime = 0
+
+    const onTouchStart = (e: TouchEvent) => {
+      const touches = Array.from(e.touches)
+      touchStartTime = Date.now()
+      touchDragged = false
+
+      if (touches.length === 1) {
+        const t = touches[0]
+        touchStartPoints = [{ clientX: t.clientX, clientY: t.clientY }]
+        touchLastPos = { clientX: t.clientX, clientY: t.clientY }
+      } else if (touches.length >= 2) {
+        const t1 = touches[0]
+        const t2 = touches[1]
+        touchStartPoints = [
+          { clientX: t1.clientX, clientY: t1.clientY },
+          { clientX: t2.clientX, clientY: t2.clientY },
+        ]
+        touchStartDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY)
+        touchLastPos = {
+          clientX: (t1.clientX + t2.clientX) / 2,
+          clientY: (t1.clientY + t2.clientY) / 2,
+        }
+      }
+    }
+
+    const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length === 1 && touchLastPos) {
+        const t = e.touches[0]
+        const dx = t.clientX - touchLastPos.clientX
+        const dy = t.clientY - touchLastPos.clientY
+        const distFromStart = touchStartPoints[0]
+          ? Math.hypot(t.clientX - touchStartPoints[0].clientX, t.clientY - touchStartPoints[0].clientY)
+          : 0
+
+        if (distFromStart > 6) {
+          touchDragged = true
+        }
+
+        if (touchDragged && (dx !== 0 || dy !== 0)) {
+          e.preventDefault()
+          doPan(t.clientX, t.clientY, dx, dy)
+        }
+        touchLastPos = { clientX: t.clientX, clientY: t.clientY }
+      } else if (e.touches.length >= 2 && touchLastPos) {
+        const t1 = e.touches[0]
+        const t2 = e.touches[1]
+        const newDist = Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY)
+        const midX = (t1.clientX + t2.clientX) / 2
+        const midY = (t1.clientY + t2.clientY) / 2
+
+        touchDragged = true
+        e.preventDefault()
+
+        // 1. Pinch-to-zoom qua WheelEvent chuẩn
+        if (touchStartDist > 0 && Math.abs(newDist - touchStartDist) > 1.5) {
+          const delta = touchStartDist - newDist
+          canvasEl.dispatchEvent(
+            new WheelEvent('wheel', {
+              clientX: midX,
+              clientY: midY,
+              deltaY: delta * 2.8,
+              deltaMode: 0,
+              bubbles: true,
+              cancelable: true,
+            })
+          )
+          touchStartDist = newDist
+        }
+
+        // 2. Pan 2 ngón tay đồng thời
+        const dx = midX - touchLastPos.clientX
+        const dy = midY - touchLastPos.clientY
+        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
+          doPan(midX, midY, dx, dy)
+        }
+        touchLastPos = { clientX: midX, clientY: midY }
+      }
+    }
+
+    const onTouchEnd = (e: TouchEvent) => {
+      if (touchStartPoints.length === 1 && !touchDragged) {
+        const t = touchStartPoints[0]
+        const elapsed = Date.now() - touchStartTime
+
+        // Double-tap để kết thúc vẽ đa giác
+        const now = Date.now()
+        if (now - lastTapTime < 340) {
+          lastTapTime = 0
+          const curMode = modeRef.current
+          if (curMode === 'poly' || curMode === 'dist') {
+            const minPts = curMode === 'dist' ? 2 : 3
+            if (activePointsRef.current.length >= minPts) {
+              e.preventDefault()
+              finishCurrentPolygonRef.current(activePointsRef.current)
+              return
+            }
+          }
+        }
+        lastTapTime = now
+
+        // Chạm nhẹ (< 400ms): chọn điểm đo hoặc bắt thực thể
+        if (elapsed < 400) {
+          const inViewer = hostEl && (hostEl.contains(e.target as Node) || e.target === canvasEl)
+          if (inViewer) {
+            const curMode = modeRef.current
+            const snap = resolveBestSnapPointRef.current(t.clientX, t.clientY, false)
+            setCurrentSnap(snap)
+
+            if (curMode === 'poly' || curMode === 'rect' || curMode === 'dist') {
+              const lastPt = activePointsRef.current[activePointsRef.current.length - 1]
+              if (lastPt) {
+                const lastScr = view.worldToScreen(lastPt)
+                const distToLast = Math.hypot(t.clientX - lastScr.x, t.clientY - lastScr.y)
+                if (distToLast < 20 && activePointsRef.current.length > 0) {
+                  undoLastPoint()
+                  return
+                }
+              }
+
+              if (curMode === 'rect') {
+                if (activePointsRef.current.length === 0) {
+                  setActivePoints([snap.point])
+                  return
+                }
+                const p1 = activePointsRef.current[0]
+                const p2 = snap.point
+                const rectPts: Point2D[] = [
+                  p1,
+                  { x: p2.x, y: p1.y },
+                  p2,
+                  { x: p1.x, y: p2.y },
+                ]
+                finishCurrentPolygonRef.current(
+                  rectPts,
+                  `Chữ nhật #${measuredPolygonsRef.current.length + 1}`
+                )
+                return
+              }
+
+              setActivePoints(prev => [...prev, snap.point])
+            } else if (curMode === 'area') {
+              const canvasPt = view.viewportToCanvas({ x: t.clientX, y: t.clientY })
+              const wcs = view.screenToWorld(canvasPt)
+              const visibleLayers = new Set(
+                layersRef.current.filter(l => l.isOn && !l.isFrozen).map(l => l.name)
+              )
+              let found: ExtractedClosedBoundary | null = null
+              let bestArea = Infinity
+              for (const b of closedBoundariesRef.current) {
+                if (visibleLayers.size > 0 && !visibleLayers.has(b.layer)) continue
+                if (pip([wcs.x, wcs.y], b.points)) {
+                  const a = calculateShoelaceArea(b.points.map(([x, y]) => ({ x, y })))
+                  if (a > 0 && a < bestArea) {
+                    bestArea = a
+                    found = b
+                  }
+                }
+              }
+              if (found) {
+                const pts = found.points.map(([x, y]) => ({ x, y }))
+                const label = found.layer
+                  ? `Vùng (${found.layer})`
+                  : `Vùng #${measuredPolygonsRef.current.length + 1}`
+                finishCurrentPolygonRef.current(pts, label)
+              }
+            } else if (curMode === 'layoff') {
+              const hit = findLayoffTargetRef.current(t.clientX, t.clientY) || hoveredLayoffRef.current
+              if (hit && docManagerRef.current) {
+                const store = docManagerRef.current.curDocument.layerStore
+                const nextOn = hit.isHiddenLayer
+                store.setLayerOn(hit.layer, nextOn)
+                setLayers(store.getLayers())
+                setHoveredLayoff(null)
+                showLayerToast(hit.layer, !nextOn)
+                if (!nextOn) {
+                  setRecentHiddenLayers(prev => [
+                    hit.layer,
+                    ...prev.filter(x => x !== hit.layer),
+                  ])
+                  setStatusMessage(`Đã ẩn lớp (LAYOFF): ${hit.layer}`)
+                } else {
+                  setStatusMessage(`Đã bật lại lớp (LAYON): ${hit.layer}`)
+                }
+                renderOverlayRef.current()
+              }
+            }
+          }
+        }
+      }
+
+      if (e.touches.length === 0) {
+        touchStartPoints = []
+        touchLastPos = null
+        touchDragged = false
+      }
+    }
+
+    hostEl.addEventListener('touchstart', onTouchStart, { passive: false })
+    hostEl.addEventListener('touchmove', onTouchMove, { passive: false })
+    hostEl.addEventListener('touchend', onTouchEnd, { passive: false })
+    hostEl.addEventListener('touchcancel', onTouchEnd, { passive: false })
+
     loadSampleFileRef.current(SAMPLE_FILES[0])
 
     return () => {
@@ -3519,6 +3736,11 @@ export const CadViewer: React.FC = () => {
 
       hostEl.removeEventListener('auxclick', onAuxClickCapture, true)
       window.removeEventListener('auxclick', onAuxClickCapture, true)
+
+      hostEl.removeEventListener('touchstart', onTouchStart)
+      hostEl.removeEventListener('touchmove', onTouchMove)
+      hostEl.removeEventListener('touchend', onTouchEnd)
+      hostEl.removeEventListener('touchcancel', onTouchEnd)
 
       document.body.style.removeProperty('cursor')
     }
@@ -4436,10 +4658,10 @@ export const CadViewer: React.FC = () => {
       <div
         role="toolbar"
         aria-label="Công cụ bản vẽ"
-        className="w-full flex flex-wrap items-center gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative"
+        className="w-full flex items-center overflow-x-auto no-scrollbar gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative"
       >
         {/* Nhóm 1: Công cụ Đo đạc & Vẽ chính */}
-        <div className="flex flex-wrap items-center gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 max-w-full">
+        <div className="flex items-center shrink-0 gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
           <button
             type="button"
             onClick={() => selectMode('pan')}
@@ -5802,13 +6024,13 @@ export const CadViewer: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setSidebarCollapsed(false)}
-                className="absolute right-2 sm:right-3 top-2 sm:top-3 z-20 inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur border border-teal-600/30 dark:border-teal-400/30 text-teal-700 dark:text-teal-300 font-semibold text-xs rounded-lg shadow-md hover:bg-teal-50 dark:hover:bg-teal-950 transition-all cursor-pointer"
+                className="fixed lg:absolute bottom-12 lg:bottom-auto right-2 sm:right-3 lg:top-3 z-30 inline-flex items-center gap-1.5 px-3 py-2 bg-slate-900/90 dark:bg-slate-800/90 text-white backdrop-blur-md border border-teal-500/40 rounded-xl shadow-xl hover:bg-slate-800 active:scale-95 transition-all cursor-pointer"
               >
-                <ChevronLeft className="w-3.5 h-3.5 text-teal-600 hidden lg:block" />
-                <ChevronUp className="w-3.5 h-3.5 text-teal-600 lg:hidden" />
+                <ChevronLeft className="w-3.5 h-3.5 text-teal-400 hidden lg:block" />
+                <ChevronUp className="w-3.5 h-3.5 text-teal-400 lg:hidden" />
                 <span>Bảng kết quả ({measuredPolygons.length})</span>
                 {totalArea > 0 && (
-                  <span className="font-mono text-[11px] font-bold text-slate-900 dark:text-slate-100 bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded">
+                  <span className="font-mono text-[11px] font-bold text-teal-300 bg-slate-800 dark:bg-slate-750 px-1.5 py-0.5 rounded">
                     {fmtNum(totalArea)} m²
                   </span>
                 )}
@@ -5905,7 +6127,16 @@ export const CadViewer: React.FC = () => {
           </div>
         )}
 
-        {/* ==================== CỘT BÊN PHẢI: THỐNG KÊ KHỐI LƯỢNG ==================== */}
+        {/* Backdrop mờ khi mở Bảng khối lượng trên Mobile */}
+        {!sidebarCollapsed && (
+          <div
+            onClick={() => setSidebarCollapsed(true)}
+            className="fixed inset-0 bg-black/50 z-40 lg:hidden backdrop-blur-xs transition-opacity"
+            aria-hidden="true"
+          />
+        )}
+
+        {/* ==================== CỘT BÊN PHẢI: THỐNG KÊ KHỐI LƯỢNG (BOTTOM SHEET TRÊN MOBILE) ==================== */}
         {!sidebarCollapsed && (
           <aside
             style={{
@@ -5919,8 +6150,29 @@ export const CadViewer: React.FC = () => {
                   : undefined,
               maxWidth: '100%',
             }}
-            className="w-full max-h-[42vh] lg:max-h-none bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 min-w-0 overflow-hidden shadow-xs"
+            className="fixed lg:static inset-x-0 bottom-0 z-50 lg:z-auto max-h-[85vh] lg:max-h-none rounded-t-2xl lg:rounded-none bg-white dark:bg-slate-900 border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-slate-800 flex flex-col shrink-0 min-w-0 overflow-hidden shadow-2xl lg:shadow-xs transition-transform"
           >
+            {/* Thanh kéo & đóng nhanh trên Mobile */}
+            <div className="lg:hidden flex items-center justify-between px-3 pt-2.5 pb-2 bg-slate-100 dark:bg-slate-800/90 border-b border-slate-200 dark:border-slate-700 shrink-0">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-slate-800 dark:text-slate-100">
+                  Bảng thống kê khối lượng ({measuredPolygons.length})
+                </span>
+                {totalArea > 0 && (
+                  <span className="text-[11px] font-mono font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/70 px-1.5 py-0.2 rounded border border-teal-200 dark:border-teal-800">
+                    {fmtNum(totalArea)} m²
+                  </span>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSidebarCollapsed(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold rounded-md bg-white dark:bg-slate-700 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-600 hover:bg-slate-50 cursor-pointer shadow-2xs"
+              >
+                <span>Thu gọn</span>
+                <ChevronDown className="w-3.5 h-3.5" />
+              </button>
+            </div>
             {/* Phần 1: Header thống kê & Thẻ KPI */}
             <div className="p-2.5 border-b border-slate-200 dark:border-slate-800 space-y-2 shrink-0 bg-slate-50/70 dark:bg-slate-900/80 min-w-0">
               {/* Tiêu đề + bộ nút xuất nhanh */}
