@@ -5023,25 +5023,29 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => setShowLayerMenu(m => !m)}
             title="Bật/tắt hiển thị các Lớp (Layers) trong bản vẽ"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all"
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-medium whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all ${
+              showLayerMenu
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200'
+            }`}
           >
-            <Layers className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
+            <Layers className="w-3.5 h-3.5 shrink-0" />
             <span>
               Lớp ({visibleLayerCount}/{layers.length})
             </span>
           </button>
 
           {showLayerMenu && (
-            <div className="fixed sm:absolute left-2 right-2 sm:left-0 sm:right-auto top-24 sm:top-full mt-1 sm:w-80 max-h-[70vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-3 z-50 flex flex-col">
-              <div className="flex items-center justify-between text-xs pb-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
-                <span className="font-semibold text-slate-700 dark:text-slate-200">
+            <div className="fixed right-3 sm:right-36 top-[100px] w-[340px] max-w-[calc(100vw-24px)] max-h-[calc(100vh-120px)] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-3.5 z-50 flex flex-col text-xs animate-in fade-in zoom-in-95 duration-150">
+              <div className="flex items-center justify-between pb-2 border-b border-slate-100 dark:border-slate-800 shrink-0">
+                <span className="font-bold text-slate-800 dark:text-slate-100">
                   Danh sách Layer ({visibleLayerCount}/{layers.length})
                 </span>
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={handleSetAllLayersOn}
-                    className="text-[11px] font-medium text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer"
                   >
                     Bật tất cả
                   </button>
@@ -5049,9 +5053,17 @@ export const CadViewer: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleSetAllLayersOff}
-                    className="text-[11px] font-medium text-slate-500 hover:underline cursor-pointer"
+                    className="text-[11px] font-semibold text-slate-500 hover:underline cursor-pointer"
                   >
                     Ẩn tất cả
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowLayerMenu(false)}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer ml-1"
+                    title="Đóng menu"
+                  >
+                    <X className="w-3.5 h-3.5" />
                   </button>
                 </div>
               </div>
@@ -5063,12 +5075,12 @@ export const CadViewer: React.FC = () => {
                     value={layerSearch}
                     onChange={e => setLayerSearch(e.target.value)}
                     placeholder="Tìm nhanh tên Layer..."
-                    className="w-full px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-teal-500"
+                    className="w-full px-2.5 py-1 text-xs rounded-md bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:border-blue-500"
                   />
                 </div>
               )}
 
-              <div className="overflow-y-auto space-y-0.5 mt-2 pr-1 flex-1 max-h-64">
+              <div className="overflow-y-auto space-y-0.5 mt-2 pr-1 flex-1 max-h-[50vh]">
                 {filteredLayers.map(layer => (
                   <label
                     key={layer.name}
@@ -5079,11 +5091,11 @@ export const CadViewer: React.FC = () => {
                         type="checkbox"
                         checked={layer.isOn}
                         onChange={() => handleToggleLayer(layer.name, layer.isOn)}
-                        className="rounded accent-teal-600 w-3.5 h-3.5 shrink-0"
+                        className="rounded accent-blue-600 w-3.5 h-3.5 shrink-0 cursor-pointer"
                       />
                       <span
                         className="w-3 h-3 rounded-xs border border-slate-300 dark:border-slate-600 shrink-0"
-                        style={{ backgroundColor: layer.cssColor || '#10b981' }}
+                        style={{ backgroundColor: layer.cssColor || '#3b82f6' }}
                       />
                       <span
                         className={`truncate font-mono text-xs ${
@@ -5122,75 +5134,95 @@ export const CadViewer: React.FC = () => {
           </button>
 
           {showDisplayMenu && (
-            <div className="fixed sm:absolute left-2 right-2 sm:left-auto sm:right-0 top-24 sm:top-full mt-1 sm:w-84 max-h-[78vh] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl shadow-2xl p-3.5 z-50 space-y-3 text-xs">
-              <div className="font-bold text-slate-800 dark:text-slate-100 pb-1.5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                <span>Tùy chọn Đọc & Hiển thị DWG / DXF</span>
-                {docStats && (
-                  <span className="font-mono text-[10px] px-1.5 py-0.5 rounded bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-300">
-                    {docStats.fileFormat} • {docStats.acadVer}
+            <div className="fixed right-3 top-[100px] w-[360px] sm:w-[400px] max-w-[calc(100vw-24px)] max-h-[calc(100vh-115px)] overflow-y-auto bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl shadow-2xl p-4 z-50 space-y-4 text-xs animate-in fade-in zoom-in-95 duration-150">
+              {/* Header của menu */}
+              <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-2">
+                  <Sliders className="w-4 h-4 text-blue-600 dark:text-blue-400 shrink-0" />
+                  <span className="font-bold text-slate-800 dark:text-slate-100 text-sm">
+                    Tùy chọn Đọc & Xuất CAD
                   </span>
-                )}
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {docStats && (
+                    <span className="font-mono text-[10px] px-1.5 py-0.5 rounded-md bg-blue-50 dark:bg-blue-950 text-blue-700 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/60">
+                      {docStats.fileFormat} • {docStats.acadVer}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowDisplayMenu(false)}
+                    className="p-1 rounded-md text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+                    title="Đóng menu"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700 dark:text-slate-300">
+              {/* Phần 1: Tùy chọn hiển thị nét & chế độ */}
+              <div className="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                <div className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">
+                  Hiển thị & Giao diện
+                </div>
+                <label className="flex items-center justify-between cursor-pointer py-0.5">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
                     Hiển thị độ dày nét (LWDISPLAY)
                   </span>
                   <input
                     type="checkbox"
                     checked={lineWeightDisplay}
                     onChange={e => handleToggleLineWeight(e.target.checked)}
-                    className="rounded accent-teal-600 w-4 h-4"
+                    className="rounded accent-blue-600 w-4 h-4 cursor-pointer"
                   />
                 </label>
 
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700 dark:text-slate-300">
+                <label className="flex items-center justify-between cursor-pointer py-0.5">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
                     Chế độ đọc (Nét đen trên nền trắng)
                   </span>
                   <input
                     type="checkbox"
                     checked={readingMode}
                     onChange={e => handleToggleReadingMode(e.target.checked)}
-                    className="rounded accent-teal-600 w-4 h-4"
+                    className="rounded accent-blue-600 w-4 h-4 cursor-pointer"
                   />
                 </label>
 
-                <label className="flex items-center justify-between cursor-pointer">
-                  <span className="text-slate-700 dark:text-slate-300">
+                <label className="flex items-center justify-between cursor-pointer py-0.5">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">
                     Đọc cả các lớp No-Plot / Ẩn
                   </span>
                   <input
                     type="checkbox"
                     checked={drawNoPlotLayers}
                     onChange={e => handleToggleNoPlotLayers(e.target.checked)}
-                    className="rounded accent-teal-600 w-4 h-4"
+                    className="rounded accent-blue-600 w-4 h-4 cursor-pointer"
                   />
                 </label>
 
-                <div className="flex items-center justify-between pt-1">
-                  <span className="text-slate-700 dark:text-slate-300">Màu nền vùng vẽ CAD:</span>
+                <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <span className="text-slate-700 dark:text-slate-300 font-medium">Màu nền vùng vẽ CAD:</span>
                   <button
                     type="button"
                     onClick={handleSwitchCadBackground}
-                    className="px-2.5 py-1 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 font-medium cursor-pointer"
+                    className="px-2.5 py-1 rounded-lg bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium cursor-pointer shadow-2xs active:scale-95 transition-all text-slate-800 dark:text-slate-200"
                   >
                     Đổi nền Đen / Trắng
                   </button>
                 </div>
 
-                <div className="space-y-1 pt-1">
-                  <span className="text-slate-600 dark:text-slate-400 block">
+                <div className="space-y-1 pt-1.5 border-t border-slate-200/50 dark:border-slate-700/50">
+                  <span className="text-slate-600 dark:text-slate-400 block font-medium">
                     Bảng mã chữ (Codepage cho DXF/DWG cũ):
                   </span>
                   <select
                     value={dxfEncoding}
                     onChange={e => handleChangeEncoding(e.target.value)}
-                    className="w-full px-2 py-1.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-medium text-slate-800 dark:text-slate-200"
+                    className="w-full px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700 font-medium text-slate-800 dark:text-slate-200 focus:outline-none focus:border-blue-500 cursor-pointer shadow-2xs"
                   >
                     {DXF_ENCODING_OPTIONS.map(opt => (
-                      <option key={opt.value} value={opt.value}>
+                      <option key={opt.value} value={opt.value} className="bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100">
                         {opt.label}
                       </option>
                     ))}
@@ -5199,45 +5231,46 @@ export const CadViewer: React.FC = () => {
               </div>
 
               {/* Danh sách bản vẽ chồng lớp XREF */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+              <div className="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300">
-                    Bản vẽ chồng lớp (XREF Overlay)
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+                    Bản vẽ chồng lớp (XREF)
                   </span>
                   <button
                     type="button"
                     onClick={() => overlayInputRef.current?.click()}
-                    className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
+                    className="text-xs font-semibold text-blue-600 dark:text-blue-400 hover:underline cursor-pointer inline-flex items-center gap-1"
                   >
-                    + Thêm file DWG/DXF
+                    + Thêm file
                   </button>
                 </div>
                 {overlays.length === 0 ? (
-                  <p className="text-[11px] text-slate-400">
+                  <p className="text-[11px] text-slate-400 dark:text-slate-500 italic py-1">
                     Chưa có bản vẽ tham chiếu nào được chồng lớp.
                   </p>
                 ) : (
-                  <div className="space-y-1">
+                  <div className="space-y-1.5 pt-1">
                     {overlays.map(ov => (
                       <div
                         key={ov.id}
-                        className="flex items-center justify-between px-2 py-1 rounded bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700"
+                        className="flex items-center justify-between px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-850 border border-slate-200 dark:border-slate-700/80 shadow-2xs"
                       >
-                        <label className="flex items-center gap-1.5 truncate cursor-pointer">
+                        <label className="flex items-center gap-2 truncate cursor-pointer flex-1 min-w-0">
                           <input
                             type="checkbox"
                             checked={ov.visible}
                             onChange={e => handleToggleOverlay(ov.id, e.target.checked)}
-                            className="rounded accent-teal-600"
+                            className="rounded accent-blue-600 w-3.5 h-3.5 shrink-0 cursor-pointer"
                           />
-                          <span className="truncate font-mono text-[11px]">{ov.fileName}</span>
+                          <span className="truncate font-mono text-[11px] text-slate-800 dark:text-slate-200">{ov.fileName}</span>
                         </label>
                         <button
                           type="button"
                           onClick={() => handleRemoveOverlay(ov.id)}
-                          className="text-rose-500 hover:text-rose-700 px-1 cursor-pointer"
+                          className="text-rose-500 hover:text-rose-700 p-1 cursor-pointer shrink-0 ml-2 rounded hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          title="Xóa chồng lớp"
                         >
-                          ✕
+                          <X className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     ))}
@@ -5246,53 +5279,57 @@ export const CadViewer: React.FC = () => {
               </div>
 
               {/* Xuất / Chuyển đổi định dạng bản vẽ */}
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
-                <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                  Chuyển đổi & Xuất bản vẽ CAD:
+              <div className="space-y-2 bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-xl border border-slate-200/60 dark:border-slate-700/60">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                  Chuyển đổi & Xuất bản vẽ:
                 </span>
-                <div className="grid grid-cols-2 gap-1.5">
+                <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => handleExportCommand('cdxf')}
-                    className="px-2 py-1.5 rounded bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 font-semibold text-left cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900/60 text-blue-700 dark:text-blue-300 border border-blue-200/80 dark:border-blue-800/80 font-semibold text-xs cursor-pointer shadow-2xs active:scale-95 transition-all text-left"
                   >
-                    ⬇ Xuất file .DXF
+                    <Download className="w-4 h-4 shrink-0 text-blue-600 dark:text-blue-400" />
+                    <span>Xuất file .DXF</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleExportCommand('pngout')}
-                    className="px-2 py-1.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-left cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-xs cursor-pointer shadow-2xs active:scale-95 transition-all text-left"
                   >
-                    🖼 Xuất ảnh .PNG
+                    <span className="text-sm shrink-0">🖼</span>
+                    <span>Xuất ảnh .PNG</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleExportCommand('csvg')}
-                    className="px-2 py-1.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-left cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-xs cursor-pointer shadow-2xs active:scale-95 transition-all text-left"
                   >
-                    📐 Xuất vector .SVG
+                    <span className="text-sm shrink-0">📐</span>
+                    <span>Xuất vector .SVG</span>
                   </button>
                   <button
                     type="button"
                     onClick={() => handleExportCommand('chtml')}
-                    className="px-2 py-1.5 rounded bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-left cursor-pointer"
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white dark:bg-slate-850 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 font-medium text-xs cursor-pointer shadow-2xs active:scale-95 transition-all text-left"
                   >
-                    🌐 Xuất trang .HTML
+                    <span className="text-sm shrink-0">🌐</span>
+                    <span>Xuất web .HTML</span>
                   </button>
                 </div>
               </div>
 
               {/* Thống kê thực thể trong bản vẽ */}
               {docStats && docStats.typeBreakdown.length > 0 && (
-                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1">
-                  <span className="font-semibold text-slate-700 dark:text-slate-300 block">
-                    Cấu trúc thực thể trên Sheet ({docStats.totalEntities}):
+                <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-1.5">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider block">
+                    Cấu trúc thực thể ({docStats.totalEntities}):
                   </span>
-                  <div className="flex flex-wrap gap-1">
+                  <div className="flex flex-wrap gap-1 max-h-24 overflow-y-auto">
                     {docStats.typeBreakdown.map(item => (
                       <span
                         key={item.type}
-                        className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono text-[10px]"
+                        className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700 font-mono text-[10px] text-slate-700 dark:text-slate-300"
                       >
                         {item.type}: <strong>{item.count}</strong>
                       </span>
