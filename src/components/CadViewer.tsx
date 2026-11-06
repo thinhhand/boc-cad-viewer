@@ -4521,41 +4521,52 @@ export const CadViewer: React.FC = () => {
       style={{ background: 'var(--bg)' }}
     >
       {/* ==================== TOP HEADER BAR (FULL DWG & DXF) ==================== */}
-      <header className="h-12 px-3 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-2 shrink-0 z-40 relative">
+      <header className="h-13 px-3.5 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3 shrink-0 z-40 relative shadow-2xs">
         {/* Zone 1: Brand & Tên bản vẽ hiện tại */}
-        <div className="flex items-center gap-2.5 min-w-0">
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span
-              className={`px-2 py-0.5 rounded-md text-white font-mono font-bold text-xs flex items-center justify-center shadow-xs ${
-                isCurrentDwg
-                  ? 'bg-gradient-to-r from-indigo-600 to-indigo-700'
-                  : 'bg-gradient-to-r from-teal-600 to-teal-700'
-              }`}
-            >
-              {isCurrentDwg ? 'DWG' : 'DXF'}
-            </span>
-            <h1 className="font-bold text-sm tracking-tight hidden sm:inline text-slate-800 dark:text-slate-100">
-              CAD 2D
-            </h1>
-          </div>
-          <div className="flex items-center gap-1.5 min-w-0">
-            <span
-              title={currentFileName}
-              className="inline-flex items-center px-2 py-0.5 rounded-md bg-teal-50/80 dark:bg-teal-950/60 border border-teal-200/80 dark:border-teal-800 text-[11px] font-mono font-semibold text-teal-700 dark:text-teal-300 truncate max-w-[170px] sm:max-w-[210px]"
-            >
-              {currentFileName}
-            </span>
-            {docStats && (
+        <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center shadow-xs text-white">
+              <Compass className="w-4 h-4" />
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <h1 className="font-bold text-sm tracking-tight text-slate-900 dark:text-slate-100">
+                BOC CAD
+              </h1>
               <span
+                className={`px-1.5 py-0.2 rounded text-[10px] font-mono font-bold tracking-wider ${
+                  isCurrentDwg
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-950/80 dark:text-blue-300 border border-blue-200 dark:border-blue-800'
+                    : 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800'
+                }`}
+              >
+                {isCurrentDwg ? 'DWG' : 'DXF'}
+              </span>
+            </div>
+          </div>
+
+          <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block shrink-0" />
+
+          <div className="flex items-center gap-2 min-w-0">
+            <div
+              title={currentFileName}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700/70 text-xs font-mono font-medium text-slate-800 dark:text-slate-200 truncate max-w-[180px] sm:max-w-[260px] shadow-2xs"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+              <span className="truncate">{currentFileName}</span>
+            </div>
+            {docStats && (
+              <div
                 title={`Phiên bản: ${docStats.acadVer} • ${docStats.totalEntities} thực thể • ${docStats.blockCount} Blocks • ${layouts.length} Sheets/Layouts`}
-                className="hidden xl:inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-[10px] font-mono text-slate-600 dark:text-slate-300 shrink-0"
+                className="hidden xl:inline-flex items-center gap-2 px-2.5 py-1 rounded-md bg-slate-50 dark:bg-slate-850 border border-slate-200/70 dark:border-slate-700/60 text-[11px] font-mono text-slate-600 dark:text-slate-300 shrink-0"
               >
                 <span>{docStats.totalEntities.toLocaleString('vi-VN')} đối tượng</span>
-                <span className="text-slate-300 dark:text-slate-600">|</span>
-                <span className="font-semibold text-indigo-600 dark:text-indigo-400">
+                <span className="text-slate-300 dark:text-slate-700">|</span>
+                <span className="font-semibold text-blue-600 dark:text-blue-400">
                   {layouts.length} {layouts.length > 1 ? 'Sheets' : 'Sheet'}
                 </span>
-              </span>
+                <span className="text-slate-300 dark:text-slate-700">|</span>
+                <span className="text-slate-500 dark:text-slate-400">{docStats.acadVer}</span>
+              </div>
             )}
           </div>
         </div>
@@ -4581,7 +4592,7 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => fileInputRef.current?.click()}
             title="Mở một hoặc nhiều tệp .DWG / .DXF từ máy tính (Hoặc kéo thả trực tiếp vào khung vẽ)"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 rounded-lg shadow-2xs transition-all cursor-pointer shrink-0 active:scale-98"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 rounded-lg shadow-xs hover:shadow-sm transition-all duration-150 cursor-pointer shrink-0 active:scale-95 focus-visible:ring-2 focus-visible:ring-blue-500/50"
           >
             <FolderOpen className="w-3.5 h-3.5" />
             <span className="hidden sm:inline">Mở DWG / DXF</span>
@@ -4591,9 +4602,9 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => overlayInputRef.current?.click()}
             title="Chồng lớp bản vẽ tham chiếu (XREF Overlay DWG/DXF) lên bản vẽ hiện tại"
-            className="hidden lg:inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all cursor-pointer shrink-0"
+            className="hidden lg:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all duration-150 cursor-pointer shrink-0 active:scale-95"
           >
-            <FileUp className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <FileUp className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
             <span>Chồng lớp (XREF)</span>
           </button>
 
@@ -4610,12 +4621,12 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => setShowFontModal(true)}
             title="Quản lý Font CAD: Tự động hỗ trợ tiếng Việt TCVN3 (.VnTime), VNI-Windows, Unicode và nạp thêm font .SHX / .TTF"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all cursor-pointer shrink-0"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700/80 border border-slate-200 dark:border-slate-700 rounded-lg transition-all duration-150 cursor-pointer shrink-0 active:scale-95"
           >
-            <Type className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+            <Type className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
             <span className="hidden sm:inline">Font CAD</span>
             {cachedFontList.length > 0 && (
-              <span className="px-1.5 py-0.2 text-[10px] font-bold bg-teal-100 text-teal-700 dark:bg-teal-900/60 dark:text-teal-300 rounded-full">
+              <span className="px-1.5 py-0.2 text-[10px] font-bold bg-blue-100 text-blue-700 dark:bg-blue-900/60 dark:text-blue-300 rounded-full">
                 {cachedFontList.length}
               </span>
             )}
@@ -4625,9 +4636,9 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={handleSelectAllClosedBoundaries}
             title="Tự động nhận diện và tính diện tích Shoelace cho tất cả đường bao Polyline kín trên Sheet đang mở"
-            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 hover:bg-teal-100/80 dark:bg-teal-950/60 dark:hover:bg-teal-900/60 border border-teal-200 dark:border-teal-800 rounded-lg transition-all cursor-pointer shrink-0"
+            className="hidden xl:inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-300 bg-emerald-50 hover:bg-emerald-100/80 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/60 border border-emerald-200 dark:border-emerald-800 rounded-lg transition-all duration-150 cursor-pointer shrink-0 active:scale-95"
           >
-            <Wand2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+            <Wand2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
             <span>Đo tự động vùng kín</span>
           </button>
         </div>
@@ -4638,18 +4649,18 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => setShowHelpModal(true)}
             title="Hướng dẫn sử dụng & Phím tắt"
-            className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+            className="p-2 rounded-lg text-slate-600 dark:text-slate-300 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all duration-150 cursor-pointer active:scale-95"
           >
-            <HelpCircle className="w-3.5 h-3.5" />
+            <HelpCircle className="w-4 h-4" />
           </button>
           <button
             type="button"
             onClick={() => setDark(d => !d)}
             title={dark ? 'Chuyển sang giao diện Sáng' : 'Chuyển sang giao diện Tối'}
             aria-label="Giao diện sáng/tối"
-            className="p-1.5 rounded-lg text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all cursor-pointer"
+            className="p-2 rounded-lg text-slate-700 dark:text-slate-200 bg-slate-100 hover:bg-slate-200/80 dark:bg-slate-800 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 transition-all duration-150 cursor-pointer active:scale-95"
           >
-            {dark ? <Sun className="w-3.5 h-3.5 text-amber-500" /> : <Moon className="w-3.5 h-3.5 text-slate-600" />}
+            {dark ? <Sun className="w-4 h-4 text-amber-500" /> : <Moon className="w-4 h-4 text-slate-600" />}
           </button>
         </div>
       </header>
@@ -4658,19 +4669,19 @@ export const CadViewer: React.FC = () => {
       <div
         role="toolbar"
         aria-label="Công cụ bản vẽ"
-        className="w-full flex items-center overflow-x-auto no-scrollbar gap-1 sm:gap-1.5 px-2 sm:px-3 py-1.5 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative"
+        className="w-full flex items-center overflow-x-auto no-scrollbar gap-2 px-3 py-1.5 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative shadow-2xs"
       >
         {/* Nhóm 1: Công cụ Đo đạc & Vẽ chính */}
-        <div className="flex items-center shrink-0 gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center shrink-0 p-0.5 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-x-0.5">
           <button
             type="button"
             onClick={() => selectMode('pan')}
             aria-pressed={mode === 'pan'}
             title="Di chuyển bản vẽ (Kéo giữ chuột trái hoặc chuột phải)"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'pan'
-                ? 'bg-teal-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Move className="w-3.5 h-3.5 shrink-0" />
@@ -4682,10 +4693,10 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode('area')}
             aria-pressed={mode === 'area'}
             title="Chọn vùng: Bấm vào bên trong vùng kín (Polyline khép kín) trên bản vẽ để tự động đo diện tích"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'area'
-                ? 'bg-teal-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
@@ -4697,10 +4708,10 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode('poly')}
             aria-pressed={mode === 'poly'}
             title="Vẽ vùng (Đa giác): Chấm từng đỉnh (tự bắt điểm OSNAP) để đo diện tích bằng công thức Shoelace"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'poly'
-                ? 'bg-teal-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Pentagon className="w-3.5 h-3.5 shrink-0" />
@@ -4712,10 +4723,10 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode('rect')}
             aria-pressed={mode === 'rect'}
             title="Chữ nhật: Chấm 2 góc đối diện để đo nhanh diện tích vùng hình chữ nhật"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'rect'
-                ? 'bg-teal-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Square className="w-3.5 h-3.5 shrink-0" />
@@ -4727,10 +4738,10 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode('dist')}
             aria-pressed={mode === 'dist'}
             title="Đo dài: Chấm các điểm liên tiếp để đo chiều dài đoạn thẳng / chu vi"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'dist'
-                ? 'bg-teal-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-blue-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Ruler className="w-3.5 h-3.5 shrink-0" />
@@ -4739,16 +4750,16 @@ export const CadViewer: React.FC = () => {
         </div>
 
         {/* Nhóm 2: Tiện ích CAD nâng cao */}
-        <div className="flex items-center gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700">
+        <div className="flex items-center shrink-0 p-0.5 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-x-0.5">
           <button
             type="button"
             onClick={() => selectMode('cal')}
             aria-pressed={mode === 'cal'}
             title="Chỉnh tỉ lệ: Chấm 2 đầu một đoạn đã biết kích thước thực trên bản vẽ để hiệu chuẩn tỉ lệ"
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'cal'
-                ? 'bg-amber-600 text-white shadow-2xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-white/80 dark:hover:bg-slate-700/80'
+                ? 'bg-amber-600 text-white shadow-xs font-semibold'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
             }`}
           >
             <Scale className="w-3.5 h-3.5 shrink-0" />
@@ -4760,9 +4771,9 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode(mode === 'layoff' ? 'poly' : 'layoff')}
             aria-pressed={mode === 'layoff'}
             title="Chọn ẩn/bật lớp (LAYOFF): Chạm trực tiếp vào bất kỳ đối tượng nào trên bản vẽ để tắt/bật lớp (Layer) của đối tượng đó"
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'layoff'
-                ? 'bg-rose-600 text-white shadow-2xs font-semibold'
+                ? 'bg-rose-600 text-white shadow-xs font-semibold'
                 : 'text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50'
             }`}
           >
@@ -4775,9 +4786,9 @@ export const CadViewer: React.FC = () => {
             onClick={() => selectMode(mode === 'info' ? 'poly' : 'info')}
             aria-pressed={mode === 'info'}
             title="Tra cứu thực thể DWG/DXF: Bấm vào bất kỳ nét vẽ, Block, Hatch, Text nào để xem chi tiết thuộc tính kỹ thuật"
-            className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-md font-medium text-xs transition-all whitespace-nowrap shrink-0 cursor-pointer ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
               mode === 'info'
-                ? 'bg-sky-600 text-white shadow-2xs font-semibold'
+                ? 'bg-sky-600 text-white shadow-xs font-semibold'
                 : 'text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50'
             }`}
           >
@@ -4789,11 +4800,11 @@ export const CadViewer: React.FC = () => {
         {/* Bộ chọn nhanh Sheet / Layout ngay trên thanh công cụ */}
         {layouts.length > 0 && (
           <div
-            className="flex items-center gap-1 px-2 py-1 bg-indigo-50/80 dark:bg-indigo-950/50 rounded-md border border-indigo-200 dark:border-indigo-800 shrink-0 whitespace-nowrap"
+            className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs shrink-0 whitespace-nowrap"
             title="Chuyển nhanh giữa không gian Model và các trang in Paper Space (Sheet / Layout)"
           >
-            <Layout className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400 shrink-0" />
-            <span className="hidden sm:inline text-indigo-800 dark:text-indigo-300 font-medium">
+            <Layout className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
+            <span className="hidden sm:inline text-slate-500 dark:text-slate-400 font-medium">
               Sheet:
             </span>
             <select
@@ -4803,7 +4814,7 @@ export const CadViewer: React.FC = () => {
                 if (target) handleSwitchLayout(target)
               }}
               aria-label="Chọn Sheet / Layout bản vẽ"
-              className="bg-transparent font-mono font-bold text-indigo-900 dark:text-indigo-200 focus:outline-none cursor-pointer"
+              className="bg-transparent font-mono font-bold text-blue-700 dark:text-blue-300 focus:outline-none cursor-pointer text-xs"
             >
               {layouts.map(l => (
                 <option
@@ -4824,13 +4835,13 @@ export const CadViewer: React.FC = () => {
           onClick={() => setOrtho(o => !o)}
           aria-pressed={ortho}
           title="Khóa tia vuông góc 90° ngang/dọc khi vẽ (Phím tắt: O hoặc giữ Shift)"
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer border ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
             ortho
-              ? 'bg-teal-50 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300 border-teal-400 dark:border-teal-700 font-semibold shadow-xs'
-              : 'bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
+              ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-400 dark:border-blue-700 font-semibold'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/70'
           }`}
         >
-          <span className={`w-1.5 h-1.5 rounded-full transition-colors ${ortho ? 'bg-teal-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
+          <span className={`w-1.5 h-1.5 rounded-full transition-colors ${ortho ? 'bg-blue-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
           <Compass className="w-3.5 h-3.5 shrink-0" />
           <span className="hidden md:inline">⊥ Vuông góc</span>
           <span className="md:hidden font-mono font-bold">⊥</span>
@@ -4842,10 +4853,10 @@ export const CadViewer: React.FC = () => {
           onClick={() => setSnapEnabled(prev => !prev)}
           aria-pressed={snapEnabled}
           title="Bật/Tắt bắt điểm tự động OSNAP vào Vertex/Endpoint/Midpoint gần nhất"
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap shrink-0 cursor-pointer border ${
+          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
             snapEnabled
-              ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 font-semibold shadow-xs'
-              : 'bg-white dark:bg-slate-850 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-800'
+              ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 font-semibold'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/70'
           }`}
         >
           <span className={`w-1.5 h-1.5 rounded-full transition-colors ${snapEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
@@ -4855,15 +4866,15 @@ export const CadViewer: React.FC = () => {
 
         {/* Điều khiển khi đang chấm điểm vẽ vùng / đo dài */}
         {activePoints.length > 0 && (
-          <div className="flex items-center gap-1.5 px-2 py-1 rounded-lg bg-teal-500/10 border border-teal-500/30 text-teal-800 dark:text-teal-200 shadow-xs animate-in fade-in duration-150">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-200 shadow-2xs animate-in fade-in duration-150">
             <span className="flex h-2 w-2 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
             </span>
             <span className="font-mono text-xs font-semibold">
               {activePoints.length} {mode === 'dist' ? 'điểm' : 'đỉnh'}
             </span>
-            <div className="h-3 w-px bg-teal-300 dark:bg-teal-700 mx-0.5" />
+            <div className="h-3 w-px bg-blue-300 dark:bg-blue-700 mx-0.5" />
             <button
               type="button"
               onClick={() => setActivePoints(prev => prev.slice(0, -1))}
@@ -4890,7 +4901,7 @@ export const CadViewer: React.FC = () => {
                 type="button"
                 onClick={() => finishCurrentPolygon(activePoints)}
                 title="Hoàn tất đo (Enter)"
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-semibold text-xs text-white bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 shadow-xs cursor-pointer transition-all"
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-semibold text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xs cursor-pointer transition-all active:scale-95"
               >
                 <Check className="w-3.5 h-3.5 shrink-0" />
                 <span>{mode === 'dist' ? 'Xong' : 'Đóng vùng'}</span>
@@ -4900,13 +4911,13 @@ export const CadViewer: React.FC = () => {
         )}
 
         {/* Nút bổ trợ 3: Hoàn tác / Làm lại */}
-        <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-850 p-0.5 shadow-2xs shrink-0">
+        <div className="flex items-center rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 p-0.5 shadow-2xs shrink-0">
           <button
             type="button"
             onClick={handleUndo}
             disabled={history.length === 0 && activePoints.length === 0}
             title="Hoàn tác (Ctrl+Z)"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
           >
             <Undo2 className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden 2xl:inline">Hoàn tác</span>
@@ -4917,7 +4928,7 @@ export const CadViewer: React.FC = () => {
             onClick={handleRedo}
             disabled={redoStack.length === 0}
             title="Làm lại (Ctrl+Y)"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
+            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
           >
             <Redo2 className="w-3.5 h-3.5 shrink-0" />
             <span className="hidden 2xl:inline">Làm lại</span>
@@ -4926,7 +4937,7 @@ export const CadViewer: React.FC = () => {
 
         {/* Nút bổ trợ 4: Đơn vị đo */}
         <div
-          className="flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-850 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs shrink-0 whitespace-nowrap shadow-2xs"
+          className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 text-xs shrink-0 whitespace-nowrap shadow-2xs"
           title={`Đơn vị gốc của bản vẽ ($INSUNITS=${detectedInsunits ?? 4})`}
         >
           <span className="text-slate-500 dark:text-slate-400">Đơn vị:</span>
@@ -5021,9 +5032,9 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => setShowLayerMenu(m => !m)}
             title="Bật/tắt hiển thị các Lớp (Layers) trong bản vẽ"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700/80 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all"
           >
-            <Layers className="w-3.5 h-3.5 shrink-0 text-teal-600 dark:text-teal-400" />
+            <Layers className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
             <span>
               Lớp ({visibleLayerCount}/{layers.length})
             </span>
@@ -5109,10 +5120,10 @@ export const CadViewer: React.FC = () => {
             type="button"
             onClick={() => setShowDisplayMenu(m => !m)}
             title="Cài đặt hiển thị DWG/DXF (Độ dày nét, Chế độ đọc, Bảng mã Font, Xuất DXF/PNG/SVG)"
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded-md border font-medium whitespace-nowrap shrink-0 cursor-pointer transition-colors ${
+            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-medium whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all ${
               showDisplayMenu
-                ? 'bg-teal-700 text-white border-teal-700'
-                : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200'
+                ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
+                : 'bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-200'
             }`}
           >
             <Sliders className="w-3.5 h-3.5 shrink-0" />
