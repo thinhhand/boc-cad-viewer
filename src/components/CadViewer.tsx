@@ -2178,16 +2178,6 @@ export const CadViewer: React.FC = () => {
       // Chuẩn hóa tự động mã chữ tiếng Việt (TCVN3 / VNI / UTF-8 Mojibake) sang Unicode chuẩn trên các đối tượng CAD
       normalizeVietnameseDatabaseText(db)
 
-      // Tự động quét và tải về tất cả các font bị thiếu trong bản vẽ (VnHelvetInsH, VnArial, VnTime, SHX...)
-      autoResolveAllMissingFonts(manager, msg => setFontToast(msg))
-        .then(res => {
-          if (res.resolved.length > 0) {
-            setFontToast(`Đã tự động tải thành công ${res.resolved.length} font CAD bị thiếu (${res.resolved.join(', ')})!`)
-            setTimeout(() => setFontToast(null), 4000)
-          }
-        })
-        .catch(() => {})
-
       const extracted = extractDatabaseGeometry(db, resolvedName, String(db.currentSpaceId || ''))
       snapTargetsRef.current = extracted.snapTargets
       closedBoundariesRef.current = extracted.closedBoundaries
@@ -6502,20 +6492,20 @@ export const CadViewer: React.FC = () => {
             </div>
 
             {/* Khu vực Tự động Tải Font bị thiếu (Online & Offline) */}
-            <div className="p-3.5 rounded-xl border border-indigo-200/80 dark:border-indigo-800/60 bg-gradient-to-r from-indigo-50/60 to-teal-50/40 dark:from-indigo-950/20 dark:to-teal-950/20 space-y-2.5">
+            <div className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 space-y-2.5">
               <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className="font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-                      <Sparkles className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                      <span>Tự động tải &amp; Bù Font bị thiếu</span>
+                      <Sparkles className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />
+                      <span>Tự động tải &amp; Bù Font CAD</span>
                     </span>
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/80 dark:text-emerald-300">
-                      Đang bật (Tự động)
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300">
+                      Tạm tắt (Tối ưu tốc độ mở bản vẽ)
                     </span>
                   </div>
                   <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
-                    Khi mở bản vẽ CAD, hệ thống sẽ tự động quét, phát hiện và tải về các font bị thiếu (như <span className="font-mono text-indigo-600 dark:text-indigo-400 font-semibold">VnHelvetInsH, VnArial, VnTime, Simplex, Romans, TXT...</span>) để chữ hiển thị trọn vẹn, không lỗi font hay xuất hiện cảnh báo.
+                    Đã tạm tắt tải font ngầm qua mạng khi mở file để bản vẽ hiển thị nhanh tức thì. Tất cả font CAD tiếng Việt (<span className="font-mono text-slate-700 dark:text-slate-300 font-semibold">VnHelvetInsH, VnArial, VnTime, Simplex...</span>) được tự động ánh xạ trực tiếp sang bộ font hệ thống (Arial, Times New Roman) siêu nhẹ.
                   </p>
                 </div>
                 <div className="flex flex-wrap sm:flex-col gap-1.5 shrink-0">
@@ -6523,41 +6513,22 @@ export const CadViewer: React.FC = () => {
                     type="button"
                     disabled={isFontLoading}
                     onClick={handleAutoDownloadMissingFonts}
-                    title="Quét bản vẽ hiện tại và tự động tải tất cả các font còn thiếu"
-                    className="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 active:scale-98 text-white font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50 text-[11px]"
+                    title="Quét bản vẽ hiện tại và tải thủ công các font còn thiếu khi cần"
+                    className="px-3 py-1.5 rounded-lg bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600 active:scale-98 text-slate-800 dark:text-slate-100 font-semibold flex items-center gap-1.5 shadow-2xs transition-all cursor-pointer disabled:opacity-50 text-[11px]"
                   >
                     <Download className="w-3.5 h-3.5" />
-                    <span>Quét &amp; Tải font thiếu</span>
+                    <span>Tải font thủ công</span>
                   </button>
                   <button
                     type="button"
                     disabled={isFontLoading}
                     onClick={handlePreloadAllEssentialFonts}
-                    title="Nạp trước toàn bộ gói 13 font CAD tiếng Việt chuẩn"
-                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-indigo-500 font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1 text-[11px] cursor-pointer transition-colors disabled:opacity-50"
+                    title="Nạp gói font CAD tiếng Việt chuẩn vào bộ nhớ đệm"
+                    className="px-2.5 py-1.5 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-slate-400 font-medium text-slate-700 dark:text-slate-200 flex items-center gap-1 text-[11px] cursor-pointer transition-colors disabled:opacity-50"
                   >
                     <RotateCw className="w-3 h-3 text-slate-400" />
-                    <span>Nạp trọn bộ font ({ESSENTIAL_CAD_FONTS.length})</span>
+                    <span>Nạp gói font CAD ({ESSENTIAL_CAD_FONTS.length})</span>
                   </button>
-                </div>
-              </div>
-
-              {/* Danh sách font CAD thiết yếu có sẵn */}
-              <div className="pt-2 border-t border-indigo-200/50 dark:border-indigo-900/40">
-                <div className="text-[10px] font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                  Gói font sẵn sàng tự động kích hoạt ({ESSENTIAL_CAD_FONTS.length} font):
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {ESSENTIAL_CAD_FONTS.map((font, idx) => (
-                    <span
-                      key={idx}
-                      title={`${font.description} • Tự động kích hoạt`}
-                      className="px-1.5 py-0.5 rounded bg-white/80 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-[10px] font-mono text-slate-700 dark:text-slate-300 flex items-center gap-1 shadow-2xs"
-                    >
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-                      {font.fileName}
-                    </span>
-                  ))}
                 </div>
               </div>
             </div>

@@ -352,81 +352,81 @@ export function decodeVietnameseCadText(raw: string, styleHint?: FontEncodingHin
  * Hỗ trợ toàn diện mọi biến thể chữ hoa, chữ thường, tiền tố dấu chấm (.VnTime) và hậu tố (.shx / .ttf)
  */
 export const VIETNAMESE_CAD_FONT_MAPPINGS: Record<string, string> = {
-  // Font TCVN3 / ABC - Biến thể VnHelvetIns / VHELVCN
-  vnhelvetinsh: 'VNHELVS',
-  'vnhelvetinsh-medium': 'VNHELVS',
-  'vnhelvetinsh-bold': 'VHHELS',
-  vnhelvetins: 'VNHELVS',
-  vnhelv: 'VNHELVS',
-  'vnhelv.shx': 'VNHELVS',
-  vhelvcn: 'VNHELVS',
-  'vhelvcn.shx': 'VNHELVS',
-  vnhelvs: 'VNHELVS',
-  vhhels: 'VHHELS',
-  '.vnhelvetinsh': 'VNHELVS',
-  '.vnhelvetins': 'VNHELVS',
-  '.vnhelv': 'VNHELVS',
-  '.vhelvcn': 'VNHELVS',
+  // Font TCVN3 / ABC - Biến thể VnHelvetIns / VHELVCN (Ánh xạ trực tiếp sang Arial siêu nhanh)
+  vnhelvetinsh: 'Arial',
+  'vnhelvetinsh-medium': 'Arial',
+  'vnhelvetinsh-bold': 'Arial',
+  vnhelvetins: 'Arial',
+  vnhelv: 'Arial',
+  'vnhelv.shx': 'Arial',
+  vhelvcn: 'Arial',
+  'vhelvcn.shx': 'Arial',
+  vnhelvs: 'Arial',
+  vhhels: 'Arial',
+  '.vnhelvetinsh': 'Arial',
+  '.vnhelvetins': 'Arial',
+  '.vnhelv': 'Arial',
+  '.vhelvcn': 'Arial',
 
   // Viết hoa & Title Case cho TCVN3 Helvet
-  VnHelvetInsH: 'VNHELVS',
-  'VnHelvetInsH-Medium': 'VNHELVS',
-  'VnHelvetInsH-Bold': 'VHHELS',
-  VnHelvetIns: 'VNHELVS',
-  VHELVCN: 'VNHELVS',
-  'VHELVCN.SHX': 'VNHELVS',
-  VNHELVS: 'VNHELVS',
-  VHHELS: 'VHHELS',
-  '.VnHelvetInsH': 'VNHELVS',
-  '.VnHelvetIns': 'VNHELVS',
+  VnHelvetInsH: 'Arial',
+  'VnHelvetInsH-Medium': 'Arial',
+  'VnHelvetInsH-Bold': 'Arial',
+  VnHelvetIns: 'Arial',
+  VHELVCN: 'Arial',
+  'VHELVCN.SHX': 'Arial',
+  VNHELVS: 'Arial',
+  VHHELS: 'Arial',
+  '.VnHelvetInsH': 'Arial',
+  '.VnHelvetIns': 'Arial',
 
-  // Font TCVN3 / ABC - Biến thể VnArial
-  vnarial: 'VNARIAL',
-  'vnarial.shx': 'VNARIAL',
-  vnarialh: 'VNARIALB',
-  'vnarialh.shx': 'VNARIALB',
-  '.vnarial': 'VNARIAL',
-  '.vnarialh': 'VNARIALB',
-  VNARIAL: 'VNARIAL',
-  'VNARIAL.SHX': 'VNARIAL',
-  VNARIALH: 'VNARIALB',
-  'VNARIALH.SHX': 'VNARIALB',
-  VnArial: 'VNARIAL',
-  VnArialH: 'VNARIALB',
-  '.VnArial': 'VNARIAL',
-  '.VnArialH': 'VNARIALB',
+  // Font TCVN3 / ABC - Biến thể VnArial (Ánh xạ sang Arial)
+  vnarial: 'Arial',
+  'vnarial.shx': 'Arial',
+  vnarialh: 'Arial',
+  'vnarialh.shx': 'Arial',
+  '.vnarial': 'Arial',
+  '.vnarialh': 'Arial',
+  VNARIAL: 'Arial',
+  'VNARIAL.SHX': 'Arial',
+  VNARIALH: 'Arial',
+  'VNARIALH.SHX': 'Arial',
+  VnArial: 'Arial',
+  VnArialH: 'Arial',
+  '.VnArial': 'Arial',
+  '.VnArialH': 'Arial',
 
-  // Font TCVN3 / ABC - Biến thể VnTime
-  vntime: 'VNTIME',
-  'vntime.shx': 'VNTIME',
-  vntimeh: 'VNTIMEB',
-  'vntimeh.shx': 'VNTIMEB',
-  '.vntime': 'VNTIME',
-  '.vntimeh': 'VNTIMEB',
-  VNTIME: 'VNTIME',
-  'VNTIME.SHX': 'VNTIME',
-  VNTIMEH: 'VNTIMEB',
-  'VNTIMEH.SHX': 'VNTIMEB',
-  VnTime: 'VNTIME',
-  VnTimeH: 'VNTIMEB',
-  '.VnTime': 'VNTIME',
-  '.VnTimeH': 'VNTIMEB',
+  // Font TCVN3 / ABC - Biến thể VnTime (Ánh xạ sang Times New Roman)
+  vntime: 'Times New Roman',
+  'vntime.shx': 'Times New Roman',
+  vntimeh: 'Times New Roman',
+  'vntimeh.shx': 'Times New Roman',
+  '.vntime': 'Times New Roman',
+  '.vntimeh': 'Times New Roman',
+  VNTIME: 'Times New Roman',
+  'VNTIME.SHX': 'Times New Roman',
+  VNTIMEH: 'Times New Roman',
+  'VNTIMEH.SHX': 'Times New Roman',
+  VnTime: 'Times New Roman',
+  VnTimeH: 'Times New Roman',
+  '.VnTime': 'Times New Roman',
+  '.VnTimeH': 'Times New Roman',
 
   // Các font TCVN3 khác
-  '.vncentury': 'VNCENTN',
-  vncentury: 'VNCENTN',
-  VNCENTN: 'VNCENTN',
-  '.vncourier': 'VNCOUR',
-  vncourier: 'VNCOUR',
-  VNCOUR: 'VNCOUR',
-  '.vnavo': 'VNAVAN',
-  vnavo: 'VNAVAN',
-  vnavan: 'VNAVAN',
-  VNAVAN: 'VNAVAN',
-  vncooper: 'VNCOOP',
-  'vncooper.shx': 'VNCOOP',
-  vncoop: 'VNCOOP',
-  VNCOOP: 'VNCOOP',
+  '.vncentury': 'Times New Roman',
+  vncentury: 'Times New Roman',
+  VNCENTN: 'Times New Roman',
+  '.vncourier': 'Courier New',
+  vncourier: 'Courier New',
+  VNCOUR: 'Courier New',
+  '.vnavo': 'Arial',
+  vnavo: 'Arial',
+  vnavan: 'Arial',
+  VNAVAN: 'Arial',
+  vncooper: 'Arial',
+  'vncooper.shx': 'Arial',
+  vncoop: 'Arial',
+  VNCOOP: 'Arial',
   vnsimli: 'simplex',
   'vnsimli.shx': 'simplex',
   vnsimple: 'simplex',
@@ -454,16 +454,16 @@ export const VIETNAMESE_CAD_FONT_MAPPINGS: Record<string, string> = {
   'VNI-ARIAL': 'Arial',
 
   // Font AutoCAD tiêu chuẩn
-  romans: 'romans',
-  'romans.shx': 'romans',
-  ROMANS: 'romans',
-  'ROMANS.SHX': 'romans',
-  romand: 'romans',
-  'romand.shx': 'romans',
-  txt: 'txt',
-  'txt.shx': 'txt',
-  TXT: 'txt',
-  'TXT.SHX': 'txt',
+  romans: 'simplex',
+  'romans.shx': 'simplex',
+  ROMANS: 'simplex',
+  'ROMANS.SHX': 'simplex',
+  romand: 'simplex',
+  'romand.shx': 'simplex',
+  txt: 'simplex',
+  'txt.shx': 'simplex',
+  TXT: 'simplex',
+  'TXT.SHX': 'simplex',
   simplex: 'simplex',
   'simplex.shx': 'simplex',
   SIMPLEX: 'simplex',
@@ -965,13 +965,16 @@ export async function applyVietnameseFontConfiguration(manager: AcApDocManager):
       )
     }
 
-    // 4. Lắng nghe sự kiện để tự động tải font bị thiếu
-    setupAutoFontDownloadListener(manager)
+    // 4. Dọn dẹp cảnh báo font thiếu ngầm (không gọi mạng, không làm chậm tải file)
+    eventBus.on('font-not-found', () => {
+      try {
+        notificationService.center.removeWhere(n => n.source === 'font-missed')
+      } catch {
+        // ignore
+      }
+    })
 
-    // 5. Nạp trước các font CAD tiếng Việt thiết yếu vào bộ nhớ
-    preloadEssentialCadFonts().catch(() => {})
-
-    // 6. Nạp font Unicode chuẩn từ CDN / FontLoader
+    // 5. Nạp font Unicode chuẩn từ CDN / FontLoader
     await manager.loadFonts(['Arial', 'Times New Roman'])
   } catch (err) {
     console.warn('Lưu ý khi cấu hình Font tiếng Việt:', err)
