@@ -4665,148 +4665,141 @@ export const CadViewer: React.FC = () => {
         </div>
       </header>
 
-      {/* ==================== THANH CÔNG CỤ ĐO ĐẠC & XEM CAD (RESPONSIVE AUTOFIT TOOLBAR) ==================== */}
+      {/* ==================== THANH CÔNG CỤ ĐO ĐẠC & XEM CAD (OPTIMIZED COMPACT TOOLBAR) ==================== */}
       <div
         role="toolbar"
         aria-label="Công cụ bản vẽ"
-        className="w-full flex items-center overflow-x-auto no-scrollbar gap-2 px-3 py-1.5 bg-slate-50/90 dark:bg-slate-900/90 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative shadow-2xs"
+        className="w-full h-11 flex items-center overflow-x-auto no-scrollbar gap-1.5 px-3 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 text-xs shrink-0 z-30 relative shadow-2xs select-none"
       >
         {/* Nhóm 1: Công cụ Đo đạc & Vẽ chính */}
-        <div className="flex items-center shrink-0 p-0.5 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-x-0.5">
+        <div className="flex items-center shrink-0 p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/70 gap-0.5">
           <button
             type="button"
             onClick={() => selectMode('pan')}
             aria-pressed={mode === 'pan'}
-            title="Di chuyển bản vẽ (Kéo giữ chuột trái hoặc chuột phải)"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Di chuyển bản vẽ (Pan) - Kéo giữ chuột"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'pan'
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <Move className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'pan' ? 'inline' : 'hidden lg:inline'}>Di chuyển</span>
+            <Move className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode('area')}
             aria-pressed={mode === 'area'}
-            title="Chọn vùng: Bấm vào bên trong vùng kín (Polyline khép kín) trên bản vẽ để tự động đo diện tích"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Chọn vùng kín (Auto Area) - Click vào đường bao Polyline kín"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'area'
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <MousePointerClick className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'area' ? 'inline' : 'hidden lg:inline'}>Chọn vùng</span>
+            <MousePointerClick className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode('poly')}
             aria-pressed={mode === 'poly'}
-            title="Vẽ vùng (Đa giác): Chấm từng đỉnh (tự bắt điểm OSNAP) để đo diện tích bằng công thức Shoelace"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Vẽ vùng đa giác (Polygon) - Chấm từng đỉnh Shoelace"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'poly'
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <Pentagon className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'poly' ? 'inline' : 'hidden lg:inline'}>Vẽ vùng</span>
+            <Pentagon className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode('rect')}
             aria-pressed={mode === 'rect'}
-            title="Chữ nhật: Chấm 2 góc đối diện để đo nhanh diện tích vùng hình chữ nhật"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Vẽ hình chữ nhật (Rectangle) - Chọn 2 góc đối diện"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'rect'
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <Square className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'rect' ? 'inline' : 'hidden lg:inline'}>Chữ nhật</span>
+            <Square className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode('dist')}
             aria-pressed={mode === 'dist'}
-            title="Đo dài: Chấm các điểm liên tiếp để đo chiều dài đoạn thẳng / chu vi"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Đo chiều dài đoạn thẳng / Chu vi (Distance)"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'dist'
-                ? 'bg-blue-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-blue-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <Ruler className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'dist' ? 'inline' : 'hidden lg:inline'}>Đo dài</span>
+            <Ruler className="w-4 h-4" />
           </button>
         </div>
 
+        <div className="w-px h-5 bg-slate-200 dark:bg-slate-700/80 shrink-0 mx-0.5" />
+
         {/* Nhóm 2: Tiện ích CAD nâng cao */}
-        <div className="flex items-center shrink-0 p-0.5 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs space-x-0.5">
+        <div className="flex items-center shrink-0 p-0.5 bg-slate-100 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/70 gap-0.5">
           <button
             type="button"
             onClick={() => selectMode('cal')}
             aria-pressed={mode === 'cal'}
-            title="Chỉnh tỉ lệ: Chấm 2 đầu một đoạn đã biết kích thước thực trên bản vẽ để hiệu chuẩn tỉ lệ"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Hiệu chuẩn tỉ lệ (Scale Calibration) - Chấm 2 đầu đoạn mẫu"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'cal'
-                ? 'bg-amber-600 text-white shadow-xs font-semibold'
-                : 'text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+                ? 'bg-amber-600 text-white shadow-xs'
+                : 'text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700/70'
             }`}
           >
-            <Scale className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'cal' ? 'inline' : 'hidden xl:inline'}>Tỉ lệ</span>
+            <Scale className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode(mode === 'layoff' ? 'poly' : 'layoff')}
             aria-pressed={mode === 'layoff'}
-            title="Chọn ẩn/bật lớp (LAYOFF): Chạm trực tiếp vào bất kỳ đối tượng nào trên bản vẽ để tắt/bật lớp (Layer) của đối tượng đó"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Chạm ẩn/bật lớp (LAYOFF) - Click vào nét vẽ để ẩn lớp"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'layoff'
-                ? 'bg-rose-600 text-white shadow-xs font-semibold'
-                : 'text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-rose-700 dark:text-rose-400 hover:bg-white dark:hover:bg-rose-950/50'
             }`}
           >
-            <EyeOff className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'layoff' ? 'inline' : 'hidden xl:inline'}>Ẩn lớp</span>
+            <EyeOff className="w-4 h-4" />
           </button>
 
           <button
             type="button"
             onClick={() => selectMode(mode === 'info' ? 'poly' : 'info')}
             aria-pressed={mode === 'info'}
-            title="Tra cứu thực thể DWG/DXF: Bấm vào bất kỳ nét vẽ, Block, Hatch, Text nào để xem chi tiết thuộc tính kỹ thuật"
-            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md font-medium text-xs transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer ${
+            title="Tra cứu thực thể DWG/DXF - Xem chi tiết đối tượng"
+            className={`p-1.5 rounded-md font-medium text-xs transition-all duration-150 shrink-0 cursor-pointer ${
               mode === 'info'
-                ? 'bg-sky-600 text-white shadow-xs font-semibold'
-                : 'text-sky-700 dark:text-sky-400 hover:bg-sky-50 dark:hover:bg-sky-950/50'
+                ? 'bg-sky-600 text-white shadow-xs'
+                : 'text-sky-700 dark:text-sky-400 hover:bg-white dark:hover:bg-sky-950/50'
             }`}
           >
-            <Info className="w-3.5 h-3.5 shrink-0" />
-            <span className={mode === 'info' ? 'inline' : 'hidden xl:inline'}>Tra cứu</span>
+            <Info className="w-4 h-4" />
           </button>
         </div>
 
-        {/* Bộ chọn nhanh Sheet / Layout ngay trên thanh công cụ */}
+        <div className="w-px h-5 bg-slate-200 dark:bg-slate-700/80 shrink-0 mx-0.5" />
+
+        {/* Nhóm 3: Sheet / Layout selector */}
         {layouts.length > 0 && (
           <div
-            className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 shadow-2xs shrink-0 whitespace-nowrap"
-            title="Chuyển nhanh giữa không gian Model và các trang in Paper Space (Sheet / Layout)"
+            className="flex items-center gap-1.5 px-2 py-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/70 shrink-0 whitespace-nowrap"
+            title="Chuyển nhanh giữa không gian Model và các Sheet / Layout"
           >
             <Layout className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400 shrink-0" />
-            <span className="hidden sm:inline text-slate-500 dark:text-slate-400 font-medium">
-              Sheet:
-            </span>
             <select
               value={activeLayout?.btrId || ''}
               onChange={e => {
@@ -4814,7 +4807,7 @@ export const CadViewer: React.FC = () => {
                 if (target) handleSwitchLayout(target)
               }}
               aria-label="Chọn Sheet / Layout bản vẽ"
-              className="bg-transparent font-mono font-bold text-blue-700 dark:text-blue-300 focus:outline-none cursor-pointer text-xs"
+              className="bg-transparent font-mono font-medium text-slate-800 dark:text-slate-200 focus:outline-none cursor-pointer text-xs max-w-[110px] truncate"
             >
               {layouts.map(l => (
                 <option
@@ -4829,34 +4822,33 @@ export const CadViewer: React.FC = () => {
           </div>
         )}
 
-        {/* Nút bổ trợ 1: Vuông góc */}
+        {/* Nhóm 4: Bổ trợ vẽ (Vuông góc & OSNAP) */}
         <button
           type="button"
           onClick={() => setOrtho(o => !o)}
           aria-pressed={ortho}
-          title="Khóa tia vuông góc 90° ngang/dọc khi vẽ (Phím tắt: O hoặc giữ Shift)"
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
+          title="Khóa tia vuông góc 90° (Phím tắt: O hoặc giữ Shift)"
+          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
             ortho
               ? 'bg-blue-50 dark:bg-blue-950/70 text-blue-800 dark:text-blue-300 border-blue-400 dark:border-blue-700 font-semibold'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-700/70'
           }`}
         >
           <span className={`w-1.5 h-1.5 rounded-full transition-colors ${ortho ? 'bg-blue-500 animate-pulse' : 'bg-slate-300 dark:bg-slate-600'}`} />
           <Compass className="w-3.5 h-3.5 shrink-0" />
-          <span className="hidden md:inline">⊥ Vuông góc</span>
-          <span className="md:hidden font-mono font-bold">⊥</span>
+          <span className="hidden sm:inline">⊥ Vuông góc</span>
+          <span className="sm:hidden font-mono font-bold">⊥</span>
         </button>
 
-        {/* Nút bổ trợ 2: Bắt điểm OSNAP */}
         <button
           type="button"
           onClick={() => setSnapEnabled(prev => !prev)}
           aria-pressed={snapEnabled}
-          title="Bật/Tắt bắt điểm tự động OSNAP vào Vertex/Endpoint/Midpoint gần nhất"
-          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
+          title="Bật/Tắt bắt điểm tự động OSNAP"
+          className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-xs font-medium transition-all duration-150 whitespace-nowrap shrink-0 cursor-pointer border shadow-2xs active:scale-95 ${
             snapEnabled
               ? 'bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-700 font-semibold'
-              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200/90 dark:border-slate-700/80 hover:bg-slate-100 dark:hover:bg-slate-700/70'
+              : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700/80 hover:bg-slate-50 dark:hover:bg-slate-700/70'
           }`}
         >
           <span className={`w-1.5 h-1.5 rounded-full transition-colors ${snapEnabled ? 'bg-amber-500' : 'bg-slate-300 dark:bg-slate-600'}`} />
@@ -4866,7 +4858,7 @@ export const CadViewer: React.FC = () => {
 
         {/* Điều khiển khi đang chấm điểm vẽ vùng / đo dài */}
         {activePoints.length > 0 && (
-          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-200 shadow-2xs animate-in fade-in duration-150">
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-lg bg-blue-500/10 border border-blue-500/30 text-blue-800 dark:text-blue-200 shadow-2xs animate-in fade-in duration-150 shrink-0">
             <span className="flex h-2 w-2 relative">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
@@ -4878,11 +4870,10 @@ export const CadViewer: React.FC = () => {
             <button
               type="button"
               onClick={() => setActivePoints(prev => prev.slice(0, -1))}
-              title="Lùi 1 điểm vừa chấm (Backspace)"
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-800 text-xs font-medium cursor-pointer transition-colors"
+              title="Lùi 1 điểm (Backspace)"
+              className="p-1 rounded hover:bg-white dark:hover:bg-slate-800 text-xs font-medium cursor-pointer transition-colors"
             >
               <Undo2 className="w-3 h-3 shrink-0" />
-              <span className="hidden sm:inline">Lùi</span>
             </button>
             <button
               type="button"
@@ -4890,57 +4881,55 @@ export const CadViewer: React.FC = () => {
                 setActivePoints([])
                 setCurrentSnap(null)
               }}
-              title="Hủy vùng đang vẽ (Esc)"
-              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium cursor-pointer transition-colors"
+              title="Hủy vẽ (Esc)"
+              className="p-1 rounded text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs font-medium cursor-pointer transition-colors"
             >
               <X className="w-3 h-3 shrink-0" />
-              <span className="hidden sm:inline">Hủy</span>
             </button>
             {activePoints.length >= (mode === 'dist' ? 2 : 3) && (
               <button
                 type="button"
                 onClick={() => finishCurrentPolygon(activePoints)}
                 title="Hoàn tất đo (Enter)"
-                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md font-semibold text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 shadow-xs cursor-pointer transition-all active:scale-95"
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md font-semibold text-xs text-white bg-blue-600 hover:bg-blue-700 shadow-xs cursor-pointer transition-all active:scale-95"
               >
-                <Check className="w-3.5 h-3.5 shrink-0" />
-                <span>{mode === 'dist' ? 'Xong' : 'Đóng vùng'}</span>
+                <Check className="w-3 h-3 shrink-0" />
+                <span>{mode === 'dist' ? 'Xong' : 'Đóng'}</span>
               </button>
             )}
           </div>
         )}
 
-        {/* Nút bổ trợ 3: Hoàn tác / Làm lại */}
-        <div className="flex items-center rounded-lg border border-slate-200/90 dark:border-slate-700/80 bg-white dark:bg-slate-800/90 p-0.5 shadow-2xs shrink-0">
+        <div className="w-px h-5 bg-slate-200 dark:bg-slate-700/80 shrink-0 mx-0.5" />
+
+        {/* Nhóm 5: Hoàn tác / Làm lại */}
+        <div className="flex items-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-slate-100 dark:bg-slate-800/80 p-0.5 shadow-2xs shrink-0">
           <button
             type="button"
             onClick={handleUndo}
             disabled={history.length === 0 && activePoints.length === 0}
             title="Hoàn tác (Ctrl+Z)"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
+            className="p-1 rounded-md text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-35 cursor-pointer transition-colors"
           >
-            <Undo2 className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden 2xl:inline">Hoàn tác</span>
+            <Undo2 className="w-3.5 h-3.5" />
           </button>
-          <div className="w-px h-3.5 bg-slate-200 dark:border-slate-700" />
+          <div className="w-px h-3.5 bg-slate-200 dark:bg-slate-700 mx-0.5" />
           <button
             type="button"
             onClick={handleRedo}
             disabled={redoStack.length === 0}
             title="Làm lại (Ctrl+Y)"
-            className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-35 text-xs font-medium cursor-pointer transition-colors"
+            className="p-1 rounded-md text-slate-700 dark:text-slate-300 hover:bg-white dark:hover:bg-slate-700 disabled:opacity-35 cursor-pointer transition-colors"
           >
-            <Redo2 className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden 2xl:inline">Làm lại</span>
+            <Redo2 className="w-3.5 h-3.5" />
           </button>
         </div>
 
-        {/* Nút bổ trợ 4: Đơn vị đo */}
+        {/* Nhóm 6: Đơn vị đo */}
         <div
-          className="flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-slate-800/90 rounded-lg border border-slate-200/90 dark:border-slate-700/80 text-xs shrink-0 whitespace-nowrap shadow-2xs"
+          className="flex items-center gap-1 px-2 py-1 bg-slate-100 dark:bg-slate-800/80 rounded-lg border border-slate-200 dark:border-slate-700/80 text-xs shrink-0 whitespace-nowrap shadow-2xs"
           title={`Đơn vị gốc của bản vẽ ($INSUNITS=${detectedInsunits ?? 4})`}
         >
-          <span className="text-slate-500 dark:text-slate-400">Đơn vị:</span>
           <select
             value={useCustomFactor ? -999 : selectedInsunits}
             onChange={e => {
@@ -4965,14 +4954,14 @@ export const CadViewer: React.FC = () => {
           </select>
 
           {useCustomFactor && (
-            <div className="flex items-center gap-1 pl-1.5 border-l border-slate-200 dark:border-slate-700">
+            <div className="flex items-center gap-1 pl-1 border-l border-slate-200 dark:border-slate-700">
               <input
                 type="number"
                 step="any"
                 value={customToMeters}
                 onChange={e => setCustomToMeters(e.target.value)}
-                title="Hệ số quy đổi 1 đơn vị bản vẽ sang mét (m)"
-                className="w-16 px-1.5 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 font-mono text-[11px]"
+                title="Hệ số quy đổi 1 đơn vị sang mét (m)"
+                className="w-14 px-1 py-0.5 rounded border border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 font-mono text-[11px]"
               />
               <span className="text-slate-500 text-[11px]">m</span>
             </div>
@@ -4983,7 +4972,7 @@ export const CadViewer: React.FC = () => {
         {calLine && calLine.length === 2 && (
           <div className="flex items-center gap-1 px-2 py-0.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 rounded-md shrink-0">
             <span className="text-amber-800 dark:text-amber-300 font-medium whitespace-nowrap">
-              Dài thực:
+              Dài:
             </span>
             <input
               type="number"
@@ -4995,7 +4984,7 @@ export const CadViewer: React.FC = () => {
               }}
               placeholder="VD: 3600"
               autoFocus
-              className="w-20 px-1.5 py-0.5 bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded font-mono text-xs"
+              className="w-16 px-1.5 py-0.5 bg-white dark:bg-slate-900 border border-amber-300 dark:border-amber-700 rounded font-mono text-xs"
             />
             <select
               value={calUnit}
@@ -5009,7 +4998,7 @@ export const CadViewer: React.FC = () => {
             <button
               type="button"
               onClick={handleApplyCalibration}
-              className="px-2 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-semibold cursor-pointer"
+              className="px-1.5 py-0.5 bg-amber-600 hover:bg-amber-700 text-white rounded font-semibold cursor-pointer"
             >
               Áp dụng
             </button>
@@ -5019,20 +5008,22 @@ export const CadViewer: React.FC = () => {
                 setCalLine(null)
                 setMode('poly')
               }}
-              className="px-1.5 py-0.5 text-slate-500 hover:text-slate-700 cursor-pointer"
+              className="px-1 py-0.5 text-slate-500 hover:text-slate-700 cursor-pointer"
             >
               Hủy
             </button>
           </div>
         )}
 
-        {/* Nút bổ trợ 5: Quản lý Lớp (Layer) */}
+        <div className="w-px h-5 bg-slate-200 dark:bg-slate-700/80 shrink-0 mx-0.5" />
+
+        {/* Nhóm 7: Quản lý Lớp (Layer) */}
         <div ref={layerMenuRef} className="relative shrink-0">
           <button
             type="button"
             onClick={() => setShowLayerMenu(m => !m)}
             title="Bật/tắt hiển thị các Lớp (Layers) trong bản vẽ"
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 border border-slate-200/90 dark:border-slate-700/80 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-700/80 font-medium text-slate-700 dark:text-slate-200 whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all"
           >
             <Layers className="w-3.5 h-3.5 shrink-0 text-blue-600 dark:text-blue-400" />
             <span>
@@ -5123,11 +5114,11 @@ export const CadViewer: React.FC = () => {
             className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border font-medium whitespace-nowrap shrink-0 cursor-pointer shadow-2xs active:scale-95 transition-all ${
               showDisplayMenu
                 ? 'bg-blue-600 text-white border-blue-600 shadow-xs'
-                : 'bg-white dark:bg-slate-800/90 hover:bg-slate-100 dark:hover:bg-slate-700/80 border-slate-200/90 dark:border-slate-700/80 text-slate-700 dark:text-slate-200'
+                : 'bg-slate-100 dark:bg-slate-800/80 hover:bg-slate-200/80 dark:hover:bg-slate-700 border-slate-200 dark:border-slate-700/80 text-slate-700 dark:text-slate-200'
             }`}
           >
             <Sliders className="w-3.5 h-3.5 shrink-0" />
-            <span className="hidden sm:inline">Hiển thị & Xuất CAD</span>
+            <span className="hidden md:inline">Cài đặt & Xuất</span>
           </button>
 
           {showDisplayMenu && (
@@ -5314,11 +5305,12 @@ export const CadViewer: React.FC = () => {
         </div>
 
         {/* Dòng thông tin kích thước bản vẽ & gợi ý chế độ */}
-        <div className="hidden xl:block flex-1 min-w-[180px] text-[11px] text-slate-500 dark:text-slate-400 truncate text-right ml-auto pr-1">
-          <span>{MODE_HINTS[mode]}</span>
+        <div className="hidden 2xl:flex items-center gap-2 text-[11px] text-slate-500 dark:text-slate-400 truncate shrink-0 ml-auto pr-1">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0" />
+          <span className="truncate max-w-[220px]">{MODE_HINTS[mode]}</span>
           {drawingExtentsText && (
-            <span className="ml-2 font-mono font-semibold text-slate-600 dark:text-slate-300">
-              · Khổ: {drawingExtentsText}
+            <span className="font-mono text-slate-400 dark:text-slate-500 shrink-0">
+              ({drawingExtentsText})
             </span>
           )}
         </div>
