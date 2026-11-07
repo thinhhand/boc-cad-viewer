@@ -1295,6 +1295,7 @@ export const CadViewer: React.FC = () => {
   const [isRightPanning, setIsRightPanning] = useState<boolean>(false)
   const isRightPanningRef = useRef<boolean>(false)
   const lastRightPanEndTimeRef = useRef<number>(0)
+  const isTouchInteractingRef = useRef<boolean>(false)
 
   // State lịch sử Hoàn tác / Làm lại (Undo / Redo)
   const [history, setHistory] = useState<MeasuredPolygon[][]>([])
@@ -1469,16 +1470,20 @@ export const CadViewer: React.FC = () => {
     if (!canvas || !docManager) return
 
     const view = docManager.curView
-    const rect = canvas.parentElement?.getBoundingClientRect()
-    if (!rect || rect.width === 0 || rect.height === 0) return
+    const parent = canvas.parentElement
+    if (!parent) return
+    const width = parent.clientWidth
+    const height = parent.clientHeight
+    if (width === 0 || height === 0) return
 
-    const dpr = window.devicePixelRatio || 1
-    const width = Math.round(rect.width)
-    const height = Math.round(rect.height)
+    // Tối ưu 60fps trên mobile: giới hạn DPR tối đa 2 để tránh nghẽn băng thông GPU trên màn hình 3x
+    const dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const targetW = Math.round(width * dpr)
+    const targetH = Math.round(height * dpr)
 
-    if (canvas.width !== width * dpr || canvas.height !== height * dpr) {
-      canvas.width = width * dpr
-      canvas.height = height * dpr
+    if (canvas.width !== targetW || canvas.height !== targetH) {
+      canvas.width = targetW
+      canvas.height = targetH
       canvas.style.width = `${width}px`
       canvas.style.height = `${height}px`
     }
@@ -1660,7 +1665,8 @@ export const CadViewer: React.FC = () => {
       }
 
       // Nếu bật Lưới gạch (Tile Grid), vẽ lưới cho đa giác diện tích
-      if (!isDist && tcCfg.on && screenPts.length >= 3) {
+      // Tối ưu 60fps trên mobile: tạm thời bỏ qua tính toán phân mảnh viên cắt trong lúc ngón tay đang trượt/pinch zoom
+      if (!isDist && tcCfg.on && screenPts.length >= 3 && !isTouchInteractingRef.current) {
         const rowObj = toTakeoffRow(poly, polyIdx)
         const tc = tileCalc(rowObj, tcCfg, toMeters)
         if (tc && tc.cells && !tc.big) {
@@ -2099,8 +2105,26 @@ export const CadViewer: React.FC = () => {
     ctx.restore()
   }, [toTakeoffRow])
 
+  const renderOverlayRafRef = useRef<number | null>(null)
+  const scheduleRenderOverlay = useCallback(() => {
+    if (renderOverlayRafRef.current !== null) return
+    renderOverlayRafRef.current = requestAnimationFrame(() => {
+      renderOverlayRafRef.current = null
+      renderOverlay()
+    })
+  }, [renderOverlay])
+
   useEffect(() => {
-    renderOverlay()
+    return () => {
+      if (renderOverlayRafRef.current !== null) {
+        cancelAnimationFrame(renderOverlayRafRef.current)
+        renderOverlayRafRef.current = null
+      }
+    }
+  }, [])
+
+  useEffect(() => {
+    scheduleRenderOverlay()
   }, [
     activePoints,
     currentSnap,
@@ -2115,7 +2139,7 @@ export const CadViewer: React.FC = () => {
     calLine,
     mode,
     tileConfig,
-    renderOverlay,
+    scheduleRenderOverlay,
   ])
 
   /**
@@ -2864,8 +2888,8 @@ export const CadViewer: React.FC = () => {
   handleUndoRef.current = handleUndo
   const handleRedoRef = useRef(handleRedo)
   handleRedoRef.current = handleRedo
-  const renderOverlayRef = useRef(renderOverlay)
-  renderOverlayRef.current = renderOverlay
+  const renderOverlayRef = useRef(scheduleRenderOverlay)
+  renderOverlayRef.current = scheduleRenderOverlay
   const resolveBestSnapPointRef = useRef(resolveBestSnapPoint)
   resolveBestSnapPointRef.current = resolveBestSnapPoint
   const findLayoffTargetRef = useRef(findLayoffTarget)
@@ -3055,7 +3079,6 @@ export const CadViewer: React.FC = () => {
 
         ;(view as unknown as { _isDirty: boolean })._isDirty = true
         view.events.viewChanged.dispatch()
-        renderOverlayRef.current()
       }
     }
 
@@ -3509,10 +3532,53 @@ export const CadViewer: React.FC = () => {
     let touchLastPos: { clientX: number; clientY: number } | null = null
     let lastTapTime = 0
 
+    // Pipeline rAF tối ưu 60fps cho touch pan & pinch-zoom
+    let pendingPanDx = 0
+    let pendingPanDy = 0
+    let pendingPanPos: { clientX: number; clientY: number } | null = null
+    let pendingZoomDelta = 0
+    let pendingZoomCenter: { x: number; y: number } | null = null
+    let touchRafId: number | null = null
+
+    const flushTouchUpdates = () => {
+      touchRafId = null
+      const curView = manager.curView
+      if (!curView) return
+
+      // Áp dụng phóng to / thu nhỏ qua pinch-to-zoom
+      if (pendingZoomDelta !== 0 && pendingZoomCenter) {
+        canvasEl.dispatchEvent(
+          new WheelEvent('wheel', {
+            clientX: pendingZoomCenter.x,
+            clientY: pendingZoomCenter.y,
+            deltaY: pendingZoomDelta,
+            deltaMode: 0,
+            bubbles: true,
+            cancelable: true,
+          })
+        )
+        pendingZoomDelta = 0
+        pendingZoomCenter = null
+      }
+
+      // Áp dụng di chuyển bản vẽ (Pan)
+      if ((pendingPanDx !== 0 || pendingPanDy !== 0) && pendingPanPos) {
+        doPan(pendingPanPos.clientX, pendingPanPos.clientY, pendingPanDx, pendingPanDy)
+        pendingPanDx = 0
+        pendingPanDy = 0
+      }
+    }
+
     const onTouchStart = (e: TouchEvent) => {
       const touches = Array.from(e.touches)
       touchStartTime = Date.now()
       touchDragged = false
+      isTouchInteractingRef.current = true
+
+      if (touchRafId !== null) {
+        cancelAnimationFrame(touchRafId)
+        flushTouchUpdates()
+      }
 
       if (touches.length === 1) {
         const t = touches[0]
@@ -3548,9 +3614,16 @@ export const CadViewer: React.FC = () => {
 
         if (touchDragged && (dx !== 0 || dy !== 0)) {
           e.preventDefault()
-          doPan(t.clientX, t.clientY, dx, dy)
+          pendingPanDx += dx
+          pendingPanDy += dy
+          pendingPanPos = { clientX: t.clientX, clientY: t.clientY }
+          touchLastPos = { clientX: t.clientX, clientY: t.clientY }
+          if (touchRafId === null) {
+            touchRafId = requestAnimationFrame(flushTouchUpdates)
+          }
+        } else {
+          touchLastPos = { clientX: t.clientX, clientY: t.clientY }
         }
-        touchLastPos = { clientX: t.clientX, clientY: t.clientY }
       } else if (e.touches.length >= 2 && touchLastPos) {
         const t1 = e.touches[0]
         const t2 = e.touches[1]
@@ -3561,33 +3634,41 @@ export const CadViewer: React.FC = () => {
         touchDragged = true
         e.preventDefault()
 
-        // 1. Pinch-to-zoom qua WheelEvent chuẩn
-        if (touchStartDist > 0 && Math.abs(newDist - touchStartDist) > 1.5) {
-          const delta = touchStartDist - newDist
-          canvasEl.dispatchEvent(
-            new WheelEvent('wheel', {
-              clientX: midX,
-              clientY: midY,
-              deltaY: delta * 2.8,
-              deltaMode: 0,
-              bubbles: true,
-              cancelable: true,
-            })
-          )
+        // 1. Pinch-to-zoom gom theo rAF mượt mà
+        if (touchStartDist > 0 && Math.abs(newDist - touchStartDist) > 1.2) {
+          pendingZoomDelta += (touchStartDist - newDist) * 2.6
+          pendingZoomCenter = { x: midX, y: midY }
           touchStartDist = newDist
         }
 
         // 2. Pan 2 ngón tay đồng thời
         const dx = midX - touchLastPos.clientX
         const dy = midY - touchLastPos.clientY
-        if (Math.abs(dx) > 1 || Math.abs(dy) > 1) {
-          doPan(midX, midY, dx, dy)
+        if (Math.abs(dx) > 0.5 || Math.abs(dy) > 0.5) {
+          pendingPanDx += dx
+          pendingPanDy += dy
+          pendingPanPos = { clientX: midX, clientY: midY }
         }
         touchLastPos = { clientX: midX, clientY: midY }
+
+        if (touchRafId === null) {
+          touchRafId = requestAnimationFrame(flushTouchUpdates)
+        }
       }
     }
 
     const onTouchEnd = (e: TouchEvent) => {
+      if (touchRafId !== null) {
+        cancelAnimationFrame(touchRafId)
+        flushTouchUpdates()
+      }
+
+      if (e.touches.length === 0) {
+        isTouchInteractingRef.current = false
+        // Vẽ lại chi tiết hoàn chỉnh khi kết thúc cử chỉ chạm
+        renderOverlayRef.current()
+      }
+
       if (touchStartPoints.length === 1 && !touchDragged) {
         const t = touchStartPoints[0]
         const elapsed = Date.now() - touchStartTime
@@ -3741,6 +3822,11 @@ export const CadViewer: React.FC = () => {
       hostEl.removeEventListener('touchmove', onTouchMove)
       hostEl.removeEventListener('touchend', onTouchEnd)
       hostEl.removeEventListener('touchcancel', onTouchEnd)
+
+      if (touchRafId !== null) {
+        cancelAnimationFrame(touchRafId)
+        touchRafId = null
+      }
 
       document.body.style.removeProperty('cursor')
     }
@@ -5714,11 +5800,11 @@ export const CadViewer: React.FC = () => {
           )}
 
           {/* Vùng Canvas Viewport chính */}
-          <div className="flex-1 min-h-0 relative overflow-hidden">
+          <div className="flex-1 min-h-0 relative overflow-hidden touch-none select-none">
             {/* Container cho @mlightcad/cad-simple-viewer */}
             <div
               ref={viewerContainerRef}
-              className={`w-full h-full ${
+              className={`w-full h-full touch-none select-none ${
                 isRightPanning
                   ? '!cursor-grabbing'
                   : mode === 'pan'
@@ -5732,7 +5818,7 @@ export const CadViewer: React.FC = () => {
             {/* Canvas 2D trong suốt phủ lên để vẽ đa giác mờ, cạnh, đỉnh & OSNAP marker */}
             <canvas
               ref={overlayCanvasRef}
-              className="pointer-events-none absolute inset-0 z-20"
+              className="pointer-events-none absolute inset-0 z-20 will-change-transform"
             />
 
             {/* Kéo thả file .DWG / .DXF trực tiếp vào khung vẽ */}
