@@ -2,6 +2,8 @@
   "name": "cad-viewer-react-ts",
   "private": true,
   "version": "0.2.0",
+  "author": "Đặng Ngọc Thịnh <thinhhand@gmail.com>",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",

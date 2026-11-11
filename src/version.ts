@@ -13,6 +13,8 @@ export interface ReleaseNote {
 
 export const APP_VERSION = '0.2.0'
 export const APP_BUILD_DATE = '07/11/2026'
+export const APP_AUTHOR = 'Đặng Ngọc Thịnh'
+export const APP_COPYRIGHT = '© 2026 Đặng Ngọc Thịnh'
 
 export const CHANGELOG_HISTORY: ReleaseNote[] = [
   {

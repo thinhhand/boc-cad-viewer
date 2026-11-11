@@ -107,7 +107,7 @@ import {
 } from '../utils/vietnameseFontUtils'
 import { optimizeTileGridOrigin, pip, tileCalc } from '../utils/dxfParser'
 import type { TakeoffRow, TileConfig, TilePattern } from '../types/takeoff'
-import { APP_VERSION, APP_BUILD_DATE, CHANGELOG_HISTORY } from '../version'
+import { APP_VERSION, APP_BUILD_DATE, APP_AUTHOR, APP_COPYRIGHT, CHANGELOG_HISTORY } from '../version'
 
 interface SampleFileItem {
   id: string
@@ -7140,17 +7140,22 @@ export const CadViewer: React.FC = () => {
             </div>
 
             <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  setShowHelpModal(false)
-                  setShowChangelogModal(true)
-                }}
-                className="inline-flex items-center gap-1.5 text-teal-600 dark:text-teal-400 hover:underline font-mono text-[11px] cursor-pointer font-semibold"
-              >
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>BOC CAD v{APP_VERSION} (Xem nhật ký cập nhật)</span>
-              </button>
+              <div className="flex flex-col items-start gap-0.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowHelpModal(false)
+                    setShowChangelogModal(true)
+                  }}
+                  className="inline-flex items-center gap-1.5 text-teal-600 dark:text-teal-400 hover:underline font-mono text-[11px] cursor-pointer font-semibold"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>BOC CAD v{APP_VERSION} (Nhật ký cập nhật)</span>
+                </button>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-mono">
+                  {APP_COPYRIGHT}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setShowHelpModal(false)}
@@ -7260,9 +7265,9 @@ export const CadViewer: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 shrink-0">
-              <span className="text-[11px] text-slate-400 dark:text-slate-500 font-mono">
-                Tự động đồng bộ với phiên bản package.json
+            <div className="flex items-center justify-between border-t border-slate-100 dark:border-slate-800 pt-3 shrink-0 flex-wrap gap-2">
+              <span className="text-[11px] text-slate-500 dark:text-slate-400 font-mono">
+                {APP_COPYRIGHT} • Phát triển bởi {APP_AUTHOR}
               </span>
               <button
                 type="button"

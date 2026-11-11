@@ -174,7 +174,11 @@ boc-cad-viewer/
 
 ---
 
-## 📄 Giấy phép (License)
+## 👨‍💻 Tác giả & Bản quyền (Author & Copyright)
 
-Dự án được phân phối dưới giấy phép [MIT License](LICENSE).
+- **Tác giả phát triển**: **Đặng Ngọc Thịnh** ([@thinhhand](https://github.com/thinhhand))
+- **Email**: [thinhhand@gmail.com](mailto:thinhhand@gmail.com)
+- **Bản quyền**: © 2026 **Đặng Ngọc Thịnh**. Bảo lưu mọi quyền theo giấy phép [MIT License](LICENSE).
+
 Mọi đóng góp, báo cáo lỗi hoặc yêu cầu tính năng mới đều được hoan nghênh tại [Issues](https://github.com/thinhhand/boc-cad-viewer/issues).
+
